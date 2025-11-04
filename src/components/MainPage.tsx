@@ -26,16 +26,17 @@ import {
   HelpCircle,
   Video,
   MapPin,
+  Coins,
 } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import InteractiveStories from "./InteractiveStories";
-import FunctionalCosmicGames from "./FunctionalCosmicGames";
+import MobileFriendlyGames from "./MobileFriendlyGames";
 import ProfilePage from "./ProfilePage";
-import FunctionalQuizzes from "./FunctionalQuizzes";
+import MobileFriendlyQuizzes from "./MobileFriendlyQuizzes";
 import TransitionCutscene from "./TransitionCutscene";
 import HelpSystem from "./HelpSystem";
 import VideoLessons from "./VideoLessonsNew";
-import FunFeatures from "./FunFeatures";
+import CosmicCoinShop from "./CosmicCoinShop";
 
 interface MainPageProps {
   playerName: string;
@@ -63,7 +64,8 @@ export default function MainPage({
   const [welcomeMessage, setWelcomeMessage] = useState(
     `Welcome, ${playerName}! 🌟 I'm Veyra, your space weather guide! Ready to explore the cosmos together?`,
   );
-  const [showFunFeatures, setShowFunFeatures] = useState(false);
+  const [showCoinShop, setShowCoinShop] = useState(false);
+  const [cosmicCoins, setCosmicCoins] = useState(187);
 
   // Welcome message timeout
   useEffect(() => {
@@ -165,14 +167,14 @@ export default function MainPage({
         );
       case "games":
         return (
-          <FunctionalCosmicGames
+          <MobileFriendlyGames
             playerName={playerName}
             onBack={goHome}
           />
         );
       case "quizzes":
         return (
-          <FunctionalQuizzes
+          <MobileFriendlyQuizzes
             playerName={playerName}
             onBack={goHome}
           />
@@ -632,13 +634,13 @@ export default function MainPage({
               className="flex-shrink-0"
             >
               <Button
-                onClick={() => setShowFunFeatures(true)}
-                className="relative overflow-hidden flex items-center gap-2 md:gap-3 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white text-sm md:text-xl px-4 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl shadow-xl border-2 md:border-4 border-white transform transition-all duration-300 whitespace-nowrap"
+                onClick={() => setShowCoinShop(true)}
+                className="relative overflow-hidden flex items-center gap-2 md:gap-3 bg-gradient-to-r from-yellow-500 via-orange-500 to-amber-500 hover:from-yellow-600 hover:via-orange-600 hover:to-amber-600 text-white text-sm md:text-xl px-4 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl shadow-xl border-2 md:border-4 border-white transform transition-all duration-300 whitespace-nowrap"
               >
                 <Sparkles className="w-5 h-5 md:w-7 md:h-7" />
-                <span className="hidden sm:inline">Fun Features!</span>
-                <span className="sm:hidden">Fun</span>
-                <span className="ml-1">✨</span>
+                <span className="hidden sm:inline">Coin Shop</span>
+                <span className="sm:hidden">Shop</span>
+                <span className="ml-1">🪙</span>
               </Button>
             </motion.div>
           </div>
@@ -656,11 +658,12 @@ export default function MainPage({
         )}
       </AnimatePresence>
 
-      {/* Fun Features */}
-      <FunFeatures
+      {/* Cosmic Coin Shop */}
+      <CosmicCoinShop
         playerName={playerName}
-        isVisible={showFunFeatures}
-        onClose={() => setShowFunFeatures(false)}
+        isVisible={showCoinShop}
+        onClose={() => setShowCoinShop(false)}
+        cosmicCoins={cosmicCoins}
       />
     </>
   );

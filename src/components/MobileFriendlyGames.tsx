@@ -1203,7 +1203,7 @@ export default function CosmicGames({
       "playing" | "paused" | "gameOver"
     >("playing");
     const [score, setScore] = useState(0);
-    const [lives, setLives] = useState(10);
+    const [lives, setLives] = useState(3);
     const [fuel, setFuel] = useState(100);
     const [playerPos, setPlayerPos] = useState({
       x: 400,
@@ -1568,7 +1568,7 @@ export default function CosmicGames({
                 onClick={() => {
                   setGameState("playing");
                   setScore(0);
-                  setLives(10);
+                  setLives(3);
                   setFuel(100);
                   setPlayerPos({ x: 400, y: 500 });
                   setVelocity({ x: 0, y: 0 });
