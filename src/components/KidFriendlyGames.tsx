@@ -4,7 +4,7 @@ import React, {
   useRef,
   useCallback,
 } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "./ui/button";
 import {
   Card,
@@ -14,12 +14,12 @@ import {
 } from "./ui/card";
 import { Progress } from "./ui/progress";
 import { Badge } from "./ui/badge";
+import { Slider } from "./ui/slider";
 import {
   Gamepad2,
   Sun,
   Zap,
   Globe,
-  Palette,
   ChevronLeft,
   Star,
   Stars,
@@ -33,7 +33,6 @@ import {
   Brain,
   Coins,
   Award,
-  Lock,
   Rocket,
   Heart,
   Crown,
@@ -41,13 +40,6 @@ import {
   Check,
   X,
   Timer,
-  ChevronRight,
-  ArrowUp,
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  Crosshair,
-  Atom,
   Volume2,
   MousePointer,
   Gauge,
@@ -55,2209 +47,1665 @@ import {
   AlertTriangle,
   Flame,
   Waves,
+  PartyPopper,
+  Gift,
+  Smile,
+  Camera,
+  Palette,
+  Wand2,
+  Crosshair,
+  Bomb,
+  Lightbulb,
+  Radio,
+  Satellite,
+  Cpu,
+  Database,
+  BarChart3,
+  TrendingUp,
+  Settings,
+  Compass,
+  Navigation,
+  MapPin,
+  Eye,
+  Clock,
+  Users,
+  BookOpen,
+  Atom,
   Wind,
+  Layers,
+  Signal,
+  Power,
+  Monitor,
+  RefreshCw,
+  ZoomIn,
+  ZoomOut,
+  Move,
+  Maximize2,
+  Minimize2,
+  SkipForward,
+  FastForward,
+  Rewind,
+  Volume,
+  VolumeX,
+  Info,
+  HelpCircle,
+  Beaker,
+  Microscope,
+  FlaskConical,
+  TestTube,
+  Telescope,
+  Orbit,
+  Radar,
+  CircuitBoard,
+  Sliders,
+  Wifi,
+  Bluetooth,
+  Save,
   Download,
+  Upload,
+  Share2,
+  Copy,
+  Edit,
+  Trash2,
+  Search,
+  Filter,
+  SortAsc,
+  List,
+  Grid,
+  Calendar,
+  Map,
+  Thermometer,
+  CloudRain,
+  CloudSnow,
+  Snowflake,
+  Sunrise,
+  Sunset,
+  Moon,
+  CloudLightning,
+  Bolt,
 } from "lucide-react";
 
-interface CosmicGamesProps {
+interface KidFriendlyGamesProps {
   playerName: string;
   onBack: () => void;
 }
 
-export default function CosmicGames({
+interface GameState {
+  score: number;
+  level: number;
+  lives: number;
+  timeLeft: number;
+  isActive: boolean;
+  isCompleted: boolean;
+  gameStarted: boolean;
+  highScore: number;
+  achievements: string[];
+}
+
+interface GameObject {
+  id: string;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  size: number;
+  type:
+    | "earth"
+    | "solar_particle"
+    | "shield"
+    | "satellite"
+    | "debris"
+    | "aurora_particle"
+    | "magnetic_field"
+    | "good_particle"
+    | "bad_particle";
+  health?: number;
+  energy?: number;
+  protected?: boolean;
+  color?: string;
+}
+
+interface Game {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  gradient: string;
+  difficulty: string;
+  difficultyColor: string;
+  points: number;
+  gameType: string;
+  instructions: string;
+  controls: string;
+  kidFriendlyInfo: {
+    whatYouDo: string;
+    howToPlay: string;
+    whatYouLearn: string;
+    vocabulary: Array<{ word: string; meaning: string }>;
+  };
+}
+
+export default function KidFriendlyGames({
   playerName,
   onBack,
-}: CosmicGamesProps) {
+}: KidFriendlyGamesProps) {
   const [selectedGame, setSelectedGame] = useState<
     string | null
   >(null);
-
-  const playSound = (type: string) => {
-    console.log(`🔊 Sound: ${type}`);
-  };
-
-  const [playerStats, setPlayerStats] = useState({
-    cosmicCoins: 187,
-    gamesWon: 12,
-    quizzesPassed: 8,
-    level: 15,
+  const [gameState, setGameState] = useState<GameState>({
+    score: 0,
+    level: 1,
+    lives: 3,
+    timeLeft: 60,
+    isActive: false,
+    isCompleted: false,
+    gameStarted: false,
+    highScore: 0,
+    achievements: [],
   });
 
-  const interactiveGames = [
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const gameObjectsRef = useRef<GameObject[]>([]);
+  const animationRef = useRef<number>();
+  const lastTimeRef = useRef<number>(0);
+  const keysPressed = useRef<Set<string>>(new Set());
+
+  const [showInstructions, setShowInstructions] =
+    useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [playerStats, setPlayerStats] = useState({
+    cosmicCoins: 347,
+    gamesWon: 23,
+    totalPlayTime: "4h 32m",
+    favoriteGame: "Earth Protector",
+  });
+
+  // Kid-friendly games with simple explanations
+  const kidFriendlyGames: Game[] = [
     {
-      id: "solar-flare-catcher",
-      title: "Solar Flare Catcher",
+      id: "earth-protector",
+      title: "🌍 Earth Protector Game",
       description:
-        "Catch magical solar flares with your mouse! Super easy and fun!",
-      icon: "🌟",
-      gradient: "from-yellow-400 via-orange-500 to-red-600",
+        "Help protect Earth from space particles! Move Earth around and use magical shields!",
+      icon: "🛡️",
+      gradient: "from-blue-400 via-green-500 to-cyan-600",
       difficulty: "Super Fun!",
-      difficultyColor: "bg-green-500",
-      points: "50",
-      gameType: "Mouse Adventure",
-      isLocked: false,
+      difficultyColor:
+        "bg-gradient-to-r from-blue-400 to-green-500",
+      points: 100,
+      gameType: "Action Adventure",
+      instructions:
+        "Space particles are coming toward Earth! Move Earth around to avoid the red (bad) particles and collect the blue (good) particles. Click to create magical shields that protect Earth!",
+      controls:
+        "Mouse: Move Earth around the screen | Click: Create magical shield | Space: Super shield power!",
+      kidFriendlyInfo: {
+        whatYouDo:
+          "You are Earth's superhero protector! Keep our planet safe from harmful space particles.",
+        howToPlay:
+          "Move your mouse to move Earth. Click to make shields. Avoid red particles, collect blue ones!",
+        whatYouLearn:
+          "Earth has an invisible magnetic shield that protects us from harmful space particles every day!",
+        vocabulary: [
+          {
+            word: "Solar particles",
+            meaning:
+              "Tiny invisible pieces that come from the Sun",
+          },
+          {
+            word: "Magnetic shield",
+            meaning:
+              "Earth's invisible protection that keeps us safe",
+          },
+          {
+            word: "Space weather",
+            meaning: "Changes in space that can affect Earth",
+          },
+        ],
+      },
     },
     {
-      id: "aurora-creator",
-      title: "Magical Aurora Painter",
+      id: "aurora-artist",
+      title: "🌈 Aurora Artist Studio",
       description:
-        "Paint beautiful northern lights! Create amazing cosmic art!",
-      icon: "🌈",
-      gradient: "from-green-400 via-blue-500 to-purple-600",
-      difficulty: "Creative Joy",
-      difficultyColor: "bg-green-500",
-      points: "75",
-      gameType: "Art Mode",
-      isLocked: false,
+        "Create beautiful aurora lights in the sky! Mix colors and make pretty patterns!",
+      icon: "🎨",
+      gradient: "from-green-400 via-purple-500 to-pink-600",
+      difficulty: "Creative Fun!",
+      difficultyColor:
+        "bg-gradient-to-r from-green-400 to-purple-500",
+      points: 150,
+      gameType: "Creative Art",
+      instructions:
+        "Use the color sliders to create beautiful aurora lights! Different colors appear at different heights in the sky. Green auroras are lower, red auroras are higher!",
+      controls:
+        "Sliders: Change aurora colors | Mouse: Paint aurora patterns | Keys 1-5: Different aurora shapes",
+      kidFriendlyInfo: {
+        whatYouDo:
+          "You are an aurora artist! Create the most beautiful light show in the sky.",
+        howToPlay:
+          "Use the color controls to paint pretty lights in the sky. Try different colors and patterns!",
+        whatYouLearn:
+          "Auroras are real lights that dance in the sky when space particles meet Earth's atmosphere!",
+        vocabulary: [
+          {
+            word: "Aurora",
+            meaning:
+              "Beautiful colored lights that dance in the sky",
+          },
+          {
+            word: "Atmosphere",
+            meaning: "The air around Earth",
+          },
+          {
+            word: "Light show",
+            meaning: "Pretty lights moving in patterns",
+          },
+        ],
+      },
     },
     {
-      id: "cosmic-dodger",
-      title: "Space Ship Adventure",
+      id: "satellite-helper",
+      title: "🛰️ Satellite Helper Mission",
       description:
-        "Fly through space! Collect stars and avoid space storms!",
-      icon: "🚀",
-      gradient: "from-purple-400 via-pink-500 to-red-600",
-      difficulty: "Epic Fun",
-      difficultyColor: "bg-yellow-500",
-      points: "100",
-      gameType: "Flying Game",
-      isLocked: false,
+        "Help fix satellites that got confused by space weather! Guide them back home!",
+      icon: "🔧",
+      gradient: "from-blue-400 via-cyan-500 to-teal-600",
+      difficulty: "Space Helper!",
+      difficultyColor:
+        "bg-gradient-to-r from-blue-400 to-cyan-500",
+      points: 200,
+      gameType: "Puzzle Adventure",
+      instructions:
+        "Space weather mixed up the satellites! Use your arrow keys to guide them back to their correct positions. Avoid the space storms (swirling clouds)!",
+      controls:
+        "Arrow Keys: Move your satellite | Space: Boost speed | Enter: Send signal to other satellites",
+      kidFriendlyInfo: {
+        whatYouDo:
+          "You are a satellite rescue hero! Help lost satellites find their way home.",
+        howToPlay:
+          "Use arrow keys to move satellites. Avoid the swirling storm clouds. Get satellites to safe zones!",
+        whatYouLearn:
+          "Satellites help us with GPS, weather, and communication, but space weather can confuse them!",
+        vocabulary: [
+          {
+            word: "Satellite",
+            meaning:
+              "A helpful robot that flies around Earth in space",
+          },
+          {
+            word: "GPS",
+            meaning: "A system that tells you where you are",
+          },
+          {
+            word: "Communication",
+            meaning: "Talking or sending messages to people",
+          },
+        ],
+      },
     },
     {
-      id: "satellite-defense",
-      title: "Satellite Protector",
+      id: "magnetic-field-builder",
+      title: "🧲 Magnetic Field Builder",
       description:
-        "Protect Earth's satellites! Use your shield to block space weather!",
-      icon: "🛰️",
-      gradient: "from-cyan-400 via-blue-600 to-indigo-800",
-      difficulty: "Hero Mode",
-      difficultyColor: "bg-orange-500",
-      points: "125",
-      gameType: "Defense Game",
-      isLocked: false,
+        "Build Earth's invisible superhero shield! Make it strong enough to protect everyone!",
+      icon: "⚡",
+      gradient: "from-purple-400 via-pink-500 to-red-500",
+      difficulty: "Shield Master!",
+      difficultyColor:
+        "bg-gradient-to-r from-purple-400 to-pink-500",
+      points: 250,
+      gameType: "Strategy Building",
+      instructions:
+        "Drag and drop magnetic field pieces to build Earth's protective shield! Make sure there are no gaps where space particles can get through!",
+      controls:
+        "Mouse: Drag field pieces | Click: Rotate pieces | Space: Test your shield strength",
+      kidFriendlyInfo: {
+        whatYouDo:
+          "You are Earth's shield engineer! Build the strongest magnetic shield to keep everyone safe.",
+        howToPlay:
+          "Drag the shield pieces around Earth. Make sure there are no holes for bad particles to get through!",
+        whatYouLearn:
+          "Earth's magnetic field is like an invisible superhero cape that protects us every day!",
+        vocabulary: [
+          {
+            word: "Magnetic field",
+            meaning:
+              "An invisible force that protects Earth like a superhero shield",
+          },
+          {
+            word: "Protect",
+            meaning: "To keep safe from harm",
+          },
+          {
+            word: "Invisible",
+            meaning:
+              "Something you can't see but is still there",
+          },
+        ],
+      },
+    },
+    {
+      id: "space-weather-detective",
+      title: "🔍 Space Weather Detective",
+      description:
+        "Solve space weather mysteries! Find clues and predict when space storms will happen!",
+      icon: "🕵️",
+      gradient: "from-yellow-400 via-orange-500 to-red-600",
+      difficulty: "Smart Detective!",
+      difficultyColor:
+        "bg-gradient-to-r from-yellow-400 to-orange-500",
+      points: 300,
+      gameType: "Mystery Solving",
+      instructions:
+        "Look at the clues from space! When you see the Sun getting brighter and sending out flares, predict when the space weather will reach Earth!",
+      controls:
+        "Mouse: Click on clues | Number keys: Make predictions | Enter: Submit your detective report",
+      kidFriendlyInfo: {
+        whatYouDo:
+          "You are a space weather detective! Use clues to predict when space storms will happen.",
+        howToPlay:
+          "Look for clues like bright flashes from the Sun. Guess when the space weather will reach Earth!",
+        whatYouLearn:
+          "Scientists watch the Sun all the time to predict space weather and keep people safe!",
+        vocabulary: [
+          {
+            word: "Predict",
+            meaning: "To guess what will happen in the future",
+          },
+          {
+            word: "Solar flare",
+            meaning: "A bright flash of energy from the Sun",
+          },
+          {
+            word: "Detective",
+            meaning:
+              "Someone who solves mysteries by finding clues",
+          },
+        ],
+      },
+    },
+    {
+      id: "communication-rescue",
+      title: "📻 Communication Rescue Squad",
+      description:
+        "Help people talk to each other when space weather makes radios fuzzy! Fix the signals!",
+      icon: "📡",
+      gradient: "from-pink-400 via-purple-500 to-blue-600",
+      difficulty: "Signal Hero!",
+      difficultyColor:
+        "bg-gradient-to-r from-pink-400 to-purple-500",
+      points: 175,
+      gameType: "Rescue Mission",
+      instructions:
+        "Space weather is making radio signals all mixed up! Connect the signal paths to help people talk to each other again!",
+      controls:
+        "Mouse: Click and drag to connect signals | Space: Clear all connections | Enter: Test the connections",
+      kidFriendlyInfo: {
+        whatYouDo:
+          "You are a communication hero! Help people talk to each other when space weather causes problems.",
+        howToPlay:
+          "Connect the signal lines to match the same colors. Make sure each person can talk to their friend!",
+        whatYouLearn:
+          "Space weather can make radios and phones not work well, just like how storms affect TV signals!",
+        vocabulary: [
+          {
+            word: "Radio signal",
+            meaning:
+              "Invisible messages that travel through the air",
+          },
+          {
+            word: "Communication",
+            meaning:
+              "Talking or sending messages to other people",
+          },
+          {
+            word: "Signal",
+            meaning: "A message sent from one place to another",
+          },
+        ],
+      },
     },
   ];
 
-  const renderGameSelection = () => (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      <motion.div
-        className="text-center"
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
-        <h2 className="text-5xl md:text-7xl font-bold text-white mb-6 flex items-center justify-center gap-6">
-          🎮 SUPER COSMIC GAMES! 🚀
-        </h2>
-        <p className="text-2xl md:text-4xl text-white/95 font-bold">
-          Ready for amazing space adventures, {playerName}?
-          Let's play! 🌟
-        </p>
-      </motion.div>
+  const playSound = (type: string) => {
+    try {
+      const audioContext = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
 
-      <motion.div
-        className="bg-gradient-to-r from-purple-500/30 to-blue-500/30 backdrop-blur-lg rounded-3xl p-8 border-4 border-white/40 shadow-2xl"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.3 }}
-      >
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[
-            {
-              label: "Cosmic Coins",
-              value: playerStats.cosmicCoins,
-              icon: "🪙",
-              color: "text-yellow-400",
-            },
-            {
-              label: "Games Won",
-              value: playerStats.gamesWon,
-              icon: "🏆",
-              color: "text-green-400",
-            },
-            {
-              label: "Space Level",
-              value: playerStats.level,
-              icon: "⭐",
-              color: "text-purple-400",
-            },
-            {
-              label: "Achievements",
-              value: playerStats.quizzesPassed,
-              icon: "🎯",
-              color: "text-blue-400",
-            },
-          ].map((stat, index) => (
-            <motion.div
-              key={index}
-              className="text-center bg-white/15 rounded-3xl p-6 border-2 border-white/20"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 + index * 0.1 }}
-              whileHover={{ scale: 1.15, y: -8 }}
-            >
-              <div className="text-6xl mb-3">{stat.icon}</div>
-              <div
-                className={`text-5xl font-bold ${stat.color} mb-2`}
-              >
-                {stat.value}
-              </div>
-              <div className="text-white font-bold text-xl">
-                {stat.label}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {interactiveGames.map((game, index) => (
-          <motion.div
-            key={game.id}
-            initial={{ opacity: 0, y: 60, rotateY: 30 }}
-            animate={{ opacity: 1, y: 0, rotateY: 0 }}
-            transition={{ delay: 0.8 + index * 0.3 }}
-            whileHover={{ scale: 1.08, rotateY: 5 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Card
-              className="bg-gradient-to-br from-white/25 to-white/15 backdrop-blur-lg border-4 border-white/40 cursor-pointer overflow-hidden relative group h-full min-h-[500px] shadow-2xl"
-              onClick={() => {
-                setSelectedGame(game.id);
-                playSound("game-start");
-              }}
-            >
-              <div
-                className={`absolute inset-0 bg-gradient-to-r ${game.gradient} opacity-30`}
-              />
-
-              {/* Floating particles */}
-              <div className="absolute inset-0">
-                {[...Array(12)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="absolute w-4 h-4 rounded-full bg-white/60"
-                    style={{
-                      left: `${10 + i * 8}%`,
-                      top: `${20 + (i % 4) * 20}%`,
-                    }}
-                    animate={{
-                      y: [0, -30, 0],
-                      opacity: [0.3, 1, 0.3],
-                      scale: [0.5, 1.2, 0.5],
-                    }}
-                    transition={{
-                      duration: 3 + i * 0.3,
-                      repeat: Infinity,
-                      delay: i * 0.2,
-                    }}
-                  />
-                ))}
-              </div>
-
-              <CardHeader className="relative z-10">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="text-8xl">{game.icon}</div>
-                  <div className="flex flex-col gap-3">
-                    <Badge
-                      className={`${game.difficultyColor} text-white font-bold text-xl px-6 py-3 rounded-2xl`}
-                    >
-                      {game.difficulty}
-                    </Badge>
-                    <div className="bg-yellow-500 text-white font-bold text-xl px-6 py-3 rounded-full flex items-center gap-2 shadow-lg">
-                      <Coins className="w-6 h-6" />
-                      {game.points}
-                    </div>
-                  </div>
-                </div>
-
-                <CardTitle className="text-4xl font-bold text-white mb-4 group-hover:text-yellow-300 transition-colors">
-                  {game.title}
-                </CardTitle>
-
-                <p className="text-white/95 text-2xl font-bold mb-6">
-                  {game.description}
-                </p>
-
-                <div className="mb-6">
-                  <Badge className="bg-purple-500 text-white font-bold text-xl px-6 py-3 rounded-2xl">
-                    {game.gameType}
-                  </Badge>
-                </div>
-              </CardHeader>
-
-              <CardContent className="relative z-10">
-                <div className="bg-gradient-to-r from-green-500/30 to-blue-500/30 backdrop-blur-sm rounded-3xl p-8 border-4 border-white/40 text-center">
-                  <Button
-                    className={`w-full bg-gradient-to-r ${game.gradient} hover:opacity-90 text-white text-3xl py-8 rounded-2xl font-bold shadow-xl border-4 border-white/60 transition-all duration-300 hover:shadow-2xl`}
-                    size="lg"
-                  >
-                    <Play className="w-8 h-8 mr-4" />
-                    PLAY NOW!
-                    <Sparkles className="w-8 h-8 ml-4" />
-                  </Button>
-                  <p className="text-white/90 mt-4 font-bold text-xl">
-                    Click anywhere to start!
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      <motion.div
-        className="bg-gradient-to-r from-purple-500/30 to-pink-500/30 backdrop-blur-lg rounded-3xl p-10 border-4 border-white/40 shadow-2xl"
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.8 }}
-      >
-        <h3 className="text-5xl font-bold text-white text-center mb-8 flex items-center justify-center gap-4">
-          <Crown className="w-12 h-12" />
-          Today's Space Challenges!
-          <Crown className="w-12 h-12" />
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            {
-              challenge: "Catch 100 Solar Flares",
-              progress: 75,
-              reward: "50 Coins",
-              icon: "🌟",
-              color: "from-yellow-400 to-orange-500",
-            },
-            {
-              challenge: "Create 15 Amazing Auroras",
-              progress: 40,
-              reward: "75 Coins",
-              icon: "🌈",
-              color: "from-green-400 to-blue-500",
-            },
-            {
-              challenge: "Navigate Space for 10 Minutes",
-              progress: 60,
-              reward: "100 Coins",
-              icon: "🚀",
-              color: "from-purple-400 to-pink-500",
-            },
-          ].map((challenge, index) => (
-            <motion.div
-              key={index}
-              className={`bg-gradient-to-r ${challenge.color} rounded-3xl p-8 text-center text-white shadow-xl border-4 border-white/30`}
-              initial={{
-                opacity: 0,
-                x: index % 2 === 0 ? -80 : 80,
-              }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 2.1 + index * 0.3 }}
-              whileHover={{ scale: 1.08, y: -10 }}
-            >
-              <div className="text-8xl mb-4">
-                {challenge.icon}
-              </div>
-              <h4 className="text-white font-bold text-2xl mb-4">
-                {challenge.challenge}
-              </h4>
-              <div className="mb-4">
-                <Progress
-                  value={challenge.progress}
-                  className="h-6 bg-white/20"
-                />
-                <p className="text-white/90 font-bold mt-3 text-xl">
-                  {challenge.progress}% Complete
-                </p>
-              </div>
-              <div className="bg-yellow-500 text-white font-bold px-6 py-3 rounded-full text-xl">
-                🏆 {challenge.reward}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-    </div>
-  );
-
-  // Enhanced Solar Flare Catcher Game
-  const SolarFlareCatcher = () => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const animationRef = useRef<number>();
-    const [gameState, setGameState] = useState<
-      "playing" | "paused" | "gameOver"
-    >("playing");
-    const [score, setScore] = useState(0);
-    const [lives, setLives] = useState(5);
-    const [timeLeft, setTimeLeft] = useState(90);
-    const [playerPos, setPlayerPos] = useState({
-      x: 400,
-      y: 500,
-    });
-    const particlesRef = useRef<any[]>([]);
-    const powerUpsRef = useRef<any[]>([]);
-
-    useEffect(() => {
-      if (gameState !== "playing") return;
-
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      const gameLoop = () => {
-        // Gradient background
-        const gradient = ctx.createLinearGradient(
-          0,
-          0,
-          0,
-          canvas.height,
-        );
-        gradient.addColorStop(0, "#1e1b4b");
-        gradient.addColorStop(0.5, "#312e81");
-        gradient.addColorStop(1, "#1e3a8a");
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Animated stars
-        for (let i = 0; i < 100; i++) {
-          const x = (i * 67) % canvas.width;
-          const y = (i * 43) % canvas.height;
-          const twinkle =
-            0.5 + Math.sin(Date.now() * 0.003 + i) * 0.5;
-          ctx.fillStyle = `rgba(255, 255, 255, ${twinkle})`;
-          const size = 1 + Math.sin(Date.now() * 0.002 + i) * 2;
-          ctx.fillRect(x, y, size, size);
-        }
-
-        // Spawn solar flares
-        if (Math.random() < 0.05) {
-          particlesRef.current.push({
-            id: Math.random(),
-            x: Math.random() * (canvas.width - 60) + 30,
-            y: -30,
-            vx: (Math.random() - 0.5) * 3,
-            vy: Math.random() * 3 + 2,
-            size: Math.random() * 20 + 15,
-            color: `hsl(${Math.random() * 60 + 30}, 100%, 60%)`,
-            energy: 50,
-            glow: Math.random() * 20 + 10,
-          });
-        }
-
-        // Spawn power-ups occasionally
-        if (Math.random() < 0.01) {
-          powerUpsRef.current.push({
-            id: Math.random(),
-            x: Math.random() * (canvas.width - 40) + 20,
-            y: -20,
-            vy: 1.5,
-            size: 25,
-            type: Math.random() < 0.5 ? "life" : "points",
-            rotation: 0,
-          });
-        }
-
-        // Update and draw solar flares
-        particlesRef.current = particlesRef.current
-          .map((p) => ({
-            ...p,
-            x: p.x + p.vx,
-            y: p.y + p.vy,
-            rotation: (p.rotation || 0) + 0.1,
-          }))
-          .filter((p) => {
-            const distance = Math.sqrt(
-              (p.x - playerPos.x) ** 2 +
-                (p.y - playerPos.y) ** 2,
-            );
-            if (distance < 70) {
-              setScore((s) => s + p.energy);
-              playSound("collect");
-              return false;
-            }
-            if (p.y > canvas.height + 50) {
-              setLives((l) => Math.max(0, l - 1));
-              if (lives <= 1) setGameState("gameOver");
-              return false;
-            }
-            return true;
-          });
-
-        // Draw solar flares with glow effect
-        particlesRef.current.forEach((p) => {
-          ctx.save();
-          ctx.shadowColor = p.color;
-          ctx.shadowBlur = p.glow;
-          ctx.fillStyle = p.color;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Inner bright core
-          ctx.shadowBlur = 5;
-          ctx.fillStyle = "#ffffff";
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size * 0.3, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        });
-
-        // Update and draw power-ups
-        powerUpsRef.current = powerUpsRef.current
-          .map((p) => ({
-            ...p,
-            y: p.y + p.vy,
-            rotation: p.rotation + 0.2,
-          }))
-          .filter((p) => {
-            const distance = Math.sqrt(
-              (p.x - playerPos.x) ** 2 +
-                (p.y - playerPos.y) ** 2,
-            );
-            if (distance < 60) {
-              if (p.type === "life") {
-                setLives((l) => l + 1);
-                playSound("power-up");
-              } else {
-                setScore((s) => s + 100);
-                playSound("bonus");
-              }
-              return false;
-            }
-            return p.y < canvas.height + 50;
-          });
-
-        // Draw power-ups
-        powerUpsRef.current.forEach((p) => {
-          ctx.save();
-          ctx.translate(p.x, p.y);
-          ctx.rotate(p.rotation);
-          ctx.shadowBlur = 15;
-
-          if (p.type === "life") {
-            ctx.shadowColor = "#ff0066";
-            ctx.fillStyle = "#ff0066";
-            // Heart shape
-            ctx.beginPath();
-            ctx.moveTo(0, p.size * 0.3);
-            ctx.bezierCurveTo(
-              -p.size * 0.5,
-              -p.size * 0.2,
-              -p.size * 0.8,
-              p.size * 0.1,
-              0,
-              p.size * 0.8,
-            );
-            ctx.bezierCurveTo(
-              p.size * 0.8,
-              p.size * 0.1,
-              p.size * 0.5,
-              -p.size * 0.2,
-              0,
-              p.size * 0.3,
-            );
-            ctx.fill();
-          } else {
-            ctx.shadowColor = "#00ff88";
-            ctx.fillStyle = "#00ff88";
-            // Star shape
-            ctx.beginPath();
-            for (let i = 0; i < 5; i++) {
-              const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
-              const x = Math.cos(angle) * p.size;
-              const y = Math.sin(angle) * p.size;
-              if (i === 0) ctx.moveTo(x, y);
-              else ctx.lineTo(x, y);
-
-              const innerAngle =
-                ((i + 0.5) * Math.PI * 2) / 5 - Math.PI / 2;
-              const innerX =
-                Math.cos(innerAngle) * (p.size * 0.4);
-              const innerY =
-                Math.sin(innerAngle) * (p.size * 0.4);
-              ctx.lineTo(innerX, innerY);
-            }
-            ctx.closePath();
-            ctx.fill();
-          }
-          ctx.restore();
-        });
-
-        // Draw player with enhanced glow
-        ctx.save();
-        ctx.shadowColor = "#00aaff";
-        ctx.shadowBlur = 30;
-        ctx.fillStyle = "#00aaff";
-        ctx.beginPath();
-        ctx.arc(playerPos.x, playerPos.y, 50, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.shadowBlur = 15;
-        ctx.fillStyle = "#66ccff";
-        ctx.beginPath();
-        ctx.arc(playerPos.x, playerPos.y, 35, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.shadowBlur = 5;
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.arc(playerPos.x, playerPos.y, 20, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-
-        // Enhanced UI
-        ctx.save();
-        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-        ctx.fillRect(0, 0, canvas.width, 80);
-
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 28px Arial";
-        ctx.fillText(`🌟 Score: ${score}`, 30, 40);
-        ctx.fillText(`💖 Lives: ${lives}`, 250, 40);
-        ctx.fillText(`⏱️ Time: ${timeLeft}s`, 450, 40);
-
-        ctx.fillStyle = "#ffdd00";
-        ctx.font = "bold 20px Arial";
-        ctx.fillText(
-          "Move mouse to catch solar flares!",
-          30,
-          65,
-        );
-        ctx.restore();
-
-        if (gameState === "playing") {
-          animationRef.current =
-            requestAnimationFrame(gameLoop);
-        }
+      const frequencies = {
+        success: 880,
+        click: 440,
+        wrong: 220,
+        coin: 660,
+        win: 1100,
+        powerup: 1320,
+        celebrate: 1760,
+        explosion: 150,
+        laser: 800,
+        shield: 600,
+        warning: 300,
       };
 
-      gameLoop();
-
-      return () => {
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current);
-        }
-      };
-    }, [gameState, score, lives, timeLeft, playerPos]);
-
-    // Timer
-    useEffect(() => {
-      if (gameState !== "playing") return;
-
-      const timer = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            setGameState("gameOver");
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }, [gameState]);
-
-    // Mouse controls
-    useEffect(() => {
-      const canvas = canvasRef.current;
-      if (!canvas || gameState !== "playing") return;
-
-      const handleMouseMove = (e: MouseEvent) => {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-
-        const mouseX = (e.clientX - rect.left) * scaleX;
-        const mouseY = (e.clientY - rect.top) * scaleY;
-
-        setPlayerPos({
-          x: Math.max(60, Math.min(canvas.width - 60, mouseX)),
-          y: Math.max(
-            140,
-            Math.min(canvas.height - 60, mouseY),
-          ),
-        });
-      };
-
-      canvas.addEventListener("mousemove", handleMouseMove);
-
-      return () => {
-        canvas.removeEventListener(
-          "mousemove",
-          handleMouseMove,
-        );
-      };
-    }, [gameState]);
-
-    if (gameState === "gameOver") {
-      return (
-        <div className="text-center space-y-8">
-          <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-6xl font-bold text-white mb-6">
-              🎉 AMAZING JOB! 🎉
-            </h2>
-            <div className="text-8xl font-bold text-yellow-400 mb-6">
-              {score}
-            </div>
-            <p className="text-white text-3xl mb-8">
-              Fantastic Final Score!
-            </p>
-
-            <div className="flex justify-center gap-6">
-              <Button
-                onClick={() => {
-                  setGameState("playing");
-                  setScore(0);
-                  setLives(5);
-                  setTimeLeft(90);
-                  particlesRef.current = [];
-                  powerUpsRef.current = [];
-                  playSound("click");
-                }}
-                className="bg-green-500 hover:bg-green-600 text-white px-10 py-6 text-3xl rounded-2xl font-bold shadow-xl"
-              >
-                🚀 Play Again!
-              </Button>
-
-              <Button
-                onClick={() => setSelectedGame(null)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-10 py-6 text-3xl rounded-2xl font-bold shadow-xl"
-              >
-                🎮 More Games
-              </Button>
-            </div>
-          </motion.div>
-        </div>
+      oscillator.frequency.value =
+        frequencies[type as keyof typeof frequencies] || 500;
+      gainNode.gain.setValueAtTime(
+        0.03,
+        audioContext.currentTime,
       );
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioContext.currentTime + 0.3,
+      );
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+      // Silent fail
     }
-
-    return (
-      <div className="space-y-8">
-        <div className="text-center">
-          <h2 className="text-5xl font-bold text-white mb-6">
-            🌟 SOLAR FLARE CATCHER! 🌟
-          </h2>
-          <p className="text-white text-2xl">
-            Move your mouse to catch the magical solar flares
-            and power-ups!
-          </p>
-        </div>
-
-        <Card className="bg-black border-4 border-white/40 overflow-hidden shadow-2xl">
-          <CardContent className="p-0">
-            <canvas
-              ref={canvasRef}
-              width={800}
-              height={600}
-              className="w-full cursor-none"
-            />
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-center gap-6">
-          <Button
-            onClick={() =>
-              setGameState(
-                gameState === "paused" ? "playing" : "paused",
-              )
-            }
-            className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-4 text-2xl rounded-2xl font-bold shadow-xl"
-          >
-            {gameState === "paused" ? (
-              <Play className="w-6 h-6 mr-3" />
-            ) : (
-              <Pause className="w-6 h-6 mr-3" />
-            )}
-            {gameState === "paused" ? "Resume" : "Pause"}
-          </Button>
-
-          <Button
-            onClick={() => setSelectedGame(null)}
-            className="bg-red-500 hover:bg-red-600 text-white px-8 py-4 text-2xl rounded-2xl font-bold shadow-xl"
-          >
-            <Home className="w-6 h-6 mr-3" />
-            Back to Games
-          </Button>
-        </div>
-      </div>
-    );
   };
 
-  // Enhanced Aurora Creator
-  const AuroraCreator = () => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [selectedColor, setSelectedColor] =
-      useState("#00ff88");
-    const [brushSize, setBrushSize] = useState(50);
-    const [isDrawing, setIsDrawing] = useState(false);
-    const [creationMode, setCreationMode] = useState<
-      "paint" | "fireworks"
-    >("paint");
-    const particlesRef = useRef<any[]>([]);
+  // Keyboard event handlers
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      keysPressed.current.add(e.key.toLowerCase());
+    };
 
-    const colors = [
+    const handleKeyUp = (e: KeyboardEvent) => {
+      keysPressed.current.delete(e.key.toLowerCase());
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
+
+  // Game Timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout | undefined;
+
+    if (
+      gameState.isActive &&
+      gameState.timeLeft > 0 &&
+      !gameState.isCompleted
+    ) {
+      interval = setInterval(() => {
+        setGameState((prev) => {
+          const newTimeLeft = prev.timeLeft - 1;
+          if (newTimeLeft <= 0) {
+            playSound("wrong");
+            return {
+              ...prev,
+              timeLeft: 0,
+              isActive: false,
+              isCompleted: true,
+            };
+          }
+          if (newTimeLeft <= 10) {
+            playSound("warning");
+          }
+          return { ...prev, timeLeft: newTimeLeft };
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [
+    gameState.isActive,
+    gameState.timeLeft,
+    gameState.isCompleted,
+  ]);
+
+  // Earth Protector Game Logic
+  const initializeEarthProtector = useCallback(() => {
+    gameObjectsRef.current = [
       {
-        name: "Aurora Green",
-        color: "#00ff88",
-        gas: "Oxygen",
-        description: "Classic northern lights!",
-      },
-      {
-        name: "Electric Blue",
-        color: "#0088ff",
-        gas: "Nitrogen",
-        description: "Brilliant blue glow!",
-      },
-      {
-        name: "Cosmic Purple",
-        color: "#8800ff",
-        gas: "Helium",
-        description: "Mysterious purple!",
-      },
-      {
-        name: "Solar Pink",
-        color: "#ff0088",
-        gas: "Hydrogen",
-        description: "Vibrant pink magic!",
-      },
-      {
-        name: "Golden Sun",
-        color: "#ffaa00",
-        gas: "Neon",
-        description: "Warm golden light!",
-      },
-      {
-        name: "Cyan Dream",
-        color: "#00ffff",
-        gas: "Argon",
-        description: "Cool cyan waves!",
+        id: "earth",
+        x: 400,
+        y: 300,
+        vx: 0,
+        vy: 0,
+        size: 50,
+        type: "earth",
+        health: 100,
       },
     ];
 
-    useEffect(() => {
+    // Add friendly and harmful particles
+    for (let i = 0; i < 8; i++) {
+      gameObjectsRef.current.push({
+        id: `good_particle_${i}`,
+        x: Math.random() * 800,
+        y: -50,
+        vx: (Math.random() - 0.5) * 2,
+        vy: Math.random() * 2 + 1,
+        size: Math.random() * 10 + 8,
+        type: "good_particle",
+        color: "blue",
+      });
+    }
+
+    for (let i = 0; i < 5; i++) {
+      gameObjectsRef.current.push({
+        id: `bad_particle_${i}`,
+        x: Math.random() * 800,
+        y: -50,
+        vx: (Math.random() - 0.5) * 3,
+        vy: Math.random() * 3 + 2,
+        size: Math.random() * 12 + 10,
+        type: "bad_particle",
+        color: "red",
+      });
+    }
+  }, []);
+
+  const updateEarthProtector = useCallback(
+    (deltaTime: number) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+      const objects = gameObjectsRef.current;
+      const earth = objects.find((obj) => obj.type === "earth");
+      if (!earth) return;
 
-      let animationId: number;
+      // Update particle positions
+      objects.forEach((obj) => {
+        if (
+          obj.type === "good_particle" ||
+          obj.type === "bad_particle"
+        ) {
+          obj.x += obj.vx * deltaTime * 60;
+          obj.y += obj.vy * deltaTime * 60;
 
-      const animate = () => {
-        // Gradient sky background
-        const gradient = ctx.createLinearGradient(
-          0,
-          0,
-          0,
-          canvas.height,
-        );
-        gradient.addColorStop(0, "#0a0a2e");
-        gradient.addColorStop(0.7, "#1a1a4e");
-        gradient.addColorStop(1, "#000");
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+          // Check collision with Earth
+          const dx = obj.x - earth.x;
+          const dy = obj.y - earth.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // Animated stars
-        for (let i = 0; i < 150; i++) {
-          const x = (i * 67) % canvas.width;
-          const y = (i * 43) % (canvas.height * 0.7);
-          const brightness =
-            0.3 + Math.sin(Date.now() * 0.002 + i) * 0.5;
-          const size =
-            1 + Math.sin(Date.now() * 0.001 + i) * 1.5;
-          ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
-          ctx.fillRect(x, y, size, size);
+          if (
+            distance < earth.size + obj.size &&
+            !obj.protected
+          ) {
+            if (obj.type === "good_particle") {
+              playSound("coin");
+              setGameState((prev) => ({
+                ...prev,
+                score: prev.score + 10,
+              }));
+            } else {
+              playSound("explosion");
+              setGameState((prev) => ({
+                ...prev,
+                lives: Math.max(0, prev.lives - 1),
+                score: Math.max(0, prev.score - 5),
+              }));
+            }
+
+            // Remove particle
+            const index = objects.indexOf(obj);
+            objects.splice(index, 1);
+          }
+
+          // Remove particles that go off screen
+          if (
+            obj.y > canvas.height + 50 ||
+            obj.x < -50 ||
+            obj.x > canvas.width + 50
+          ) {
+            const index = objects.indexOf(obj);
+            objects.splice(index, 1);
+          }
         }
 
-        // Update and draw aurora particles
-        particlesRef.current = particlesRef.current
-          .map((p) => ({
-            ...p,
-            alpha: p.alpha * 0.998,
-            y: p.y + Math.sin(Date.now() * 0.003 + p.id) * 0.8,
-            x:
-              p.x +
-              Math.sin(Date.now() * 0.002 + p.id * 2) * 0.3,
-          }))
-          .filter((p) => p.alpha > 0.02);
+        if (obj.type === "shield") {
+          obj.size -= deltaTime * 20; // Shields decay
+          if (obj.size <= 0) {
+            const index = objects.indexOf(obj);
+            objects.splice(index, 1);
+          }
+        }
+      });
 
-        particlesRef.current.forEach((p) => {
-          ctx.save();
-          ctx.globalAlpha = p.alpha;
-          ctx.fillStyle = p.color;
-          ctx.shadowColor = p.color;
-          ctx.shadowBlur = p.size;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
+      // Add new particles periodically
+      if (Math.random() < 0.03) {
+        const isGood = Math.random() < 0.6; // 60% chance of good particles
+        objects.push({
+          id: `${isGood ? "good" : "bad"}_particle_${Date.now()}`,
+          x: Math.random() * canvas.width,
+          y: -50,
+          vx: (Math.random() - 0.5) * 3,
+          vy: Math.random() * 3 + 1,
+          size: Math.random() * 12 + 8,
+          type: isGood ? "good_particle" : "bad_particle",
+          color: isGood ? "blue" : "red",
         });
+      }
 
-        // Enhanced ground with trees
-        const groundGradient = ctx.createLinearGradient(
-          0,
-          canvas.height - 100,
-          0,
-          canvas.height,
-        );
-        groundGradient.addColorStop(0, "#001122");
-        groundGradient.addColorStop(1, "#000");
-        ctx.fillStyle = groundGradient;
-        ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+      // Update score for survival
+      setGameState((prev) => ({
+        ...prev,
+        score: prev.score + 1,
+      }));
 
-        // Draw trees with more detail
-        for (let i = 0; i < 12; i++) {
-          const x = (i * canvas.width) / 12;
-          const height = 60 + Math.sin(i) * 20;
+      // Check win condition
+      if (gameState.score > 500) {
+        endGame(true);
+      }
 
-          // Tree trunk
-          ctx.fillStyle = "#000";
-          ctx.fillRect(x, canvas.height - height, 10, height);
+      // Check lose condition
+      if (gameState.lives <= 0) {
+        endGame(false);
+      }
+    },
+    [gameState.score, gameState.lives],
+  );
 
-          // Tree top
+  const renderEarthProtector = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Clear canvas with space background
+    const gradient = ctx.createLinearGradient(
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
+    gradient.addColorStop(0, "#0f0f2e");
+    gradient.addColorStop(0.5, "#1a1a4e");
+    gradient.addColorStop(1, "#0f0f2e");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw twinkling stars
+    ctx.fillStyle = "#ffffff";
+    for (let i = 0; i < 50; i++) {
+      const x = (i * 37) % canvas.width;
+      const y = (i * 73) % canvas.height;
+      const twinkle =
+        Math.sin(Date.now() * 0.001 + i) * 0.5 + 0.5;
+      ctx.globalAlpha = twinkle;
+      ctx.beginPath();
+      ctx.arc(x, y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // Draw game objects
+    gameObjectsRef.current.forEach((obj) => {
+      ctx.save();
+      ctx.translate(obj.x, obj.y);
+
+      switch (obj.type) {
+        case "earth":
+          // Draw Earth with a happy face
+          const earthGradient = ctx.createRadialGradient(
+            0,
+            0,
+            0,
+            0,
+            0,
+            obj.size,
+          );
+          earthGradient.addColorStop(0, "#4a90e2");
+          earthGradient.addColorStop(0.7, "#357abd");
+          earthGradient.addColorStop(1, "#1e3a5f");
+          ctx.fillStyle = earthGradient;
           ctx.beginPath();
-          ctx.moveTo(x - 20, canvas.height - height);
-          ctx.lineTo(x + 5, canvas.height - height - 30);
-          ctx.lineTo(x + 30, canvas.height - height);
-          ctx.closePath();
+          ctx.arc(0, 0, obj.size, 0, Math.PI * 2);
           ctx.fill();
-        }
 
-        animationId = requestAnimationFrame(animate);
-      };
+          // Draw continents
+          ctx.fillStyle = "#2d5a2d";
+          ctx.beginPath();
+          ctx.arc(-15, -10, 12, 0, Math.PI * 2);
+          ctx.arc(10, 5, 10, 0, Math.PI * 2);
+          ctx.arc(-5, 20, 8, 0, Math.PI * 2);
+          ctx.fill();
 
-      animate();
+          // Draw happy face
+          ctx.fillStyle = "#ffffff";
+          // Eyes
+          ctx.beginPath();
+          ctx.arc(-12, -8, 3, 0, Math.PI * 2);
+          ctx.arc(12, -8, 3, 0, Math.PI * 2);
+          ctx.fill();
 
-      return () => {
-        if (animationId) {
-          cancelAnimationFrame(animationId);
-        }
-      };
-    }, []);
+          // Smile
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(0, 5, 15, 0.2 * Math.PI, 0.8 * Math.PI);
+          ctx.stroke();
 
-    const handleCanvasInteraction = (
-      e: React.MouseEvent<HTMLCanvasElement>,
-    ) => {
+          // Draw protective magnetic field
+          ctx.strokeStyle = "rgba(0, 255, 255, 0.3)";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(0, 0, obj.size + 15, 0, Math.PI * 2);
+          ctx.stroke();
+          break;
+
+        case "good_particle":
+          // Draw friendly blue particle with sparkles
+          const goodGradient = ctx.createRadialGradient(
+            0,
+            0,
+            0,
+            0,
+            0,
+            obj.size,
+          );
+          goodGradient.addColorStop(0, "#00aaff");
+          goodGradient.addColorStop(1, "#0066cc");
+          ctx.fillStyle = goodGradient;
+          ctx.beginPath();
+          ctx.arc(0, 0, obj.size, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Add sparkles
+          ctx.fillStyle = "#ffffff";
+          for (let i = 0; i < 4; i++) {
+            const angle =
+              (i / 4) * Math.PI * 2 + Date.now() * 0.01;
+            const sparkleX = Math.cos(angle) * obj.size * 1.5;
+            const sparkleY = Math.sin(angle) * obj.size * 1.5;
+            ctx.beginPath();
+            ctx.arc(sparkleX, sparkleY, 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
+
+        case "bad_particle":
+          // Draw dangerous red particle with warning spikes
+          const badGradient = ctx.createRadialGradient(
+            0,
+            0,
+            0,
+            0,
+            0,
+            obj.size,
+          );
+          badGradient.addColorStop(0, "#ff4444");
+          badGradient.addColorStop(1, "#cc0000");
+          ctx.fillStyle = badGradient;
+          ctx.beginPath();
+          ctx.arc(0, 0, obj.size, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Add warning spikes
+          ctx.strokeStyle = "#ff8888";
+          ctx.lineWidth = 3;
+          for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2;
+            const spikeX = Math.cos(angle) * obj.size * 1.3;
+            const spikeY = Math.sin(angle) * obj.size * 1.3;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(spikeX, spikeY);
+            ctx.stroke();
+          }
+          break;
+
+        case "shield":
+          // Draw magical protective shield
+          const shieldGradient = ctx.createRadialGradient(
+            0,
+            0,
+            0,
+            0,
+            0,
+            obj.size,
+          );
+          shieldGradient.addColorStop(
+            0,
+            "rgba(0, 255, 255, 0.8)",
+          );
+          shieldGradient.addColorStop(
+            1,
+            "rgba(0, 255, 255, 0.1)",
+          );
+          ctx.fillStyle = shieldGradient;
+          ctx.beginPath();
+          ctx.arc(0, 0, obj.size, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Add magical sparkles around the shield
+          ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+          for (let i = 0; i < 8; i++) {
+            const angle =
+              (i / 8) * Math.PI * 2 + Date.now() * 0.005;
+            const sparkleX = Math.cos(angle) * obj.size * 1.2;
+            const sparkleY = Math.sin(angle) * obj.size * 1.2;
+            ctx.beginPath();
+            ctx.arc(sparkleX, sparkleY, 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
+      }
+
+      ctx.restore();
+    });
+
+    // Draw kid-friendly UI
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillRect(10, 10, 250, 140);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 18px Arial";
+    ctx.fillText(`Score: ${gameState.score}`, 20, 35);
+    ctx.fillText(
+      `Lives: ${"❤️".repeat(gameState.lives)}`,
+      20,
+      60,
+    );
+    ctx.fillText(`Time: ${gameState.timeLeft}s`, 20, 85);
+    ctx.fillText(`Level: ${gameState.level}`, 20, 110);
+
+    // Draw instructions
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillRect(canvas.width - 280, 10, 270, 100);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 14px Arial";
+    ctx.fillText(
+      "🖱️ Move mouse to move Earth!",
+      canvas.width - 270,
+      35,
+    );
+    ctx.fillText(
+      "🖱️ Click to make shields!",
+      canvas.width - 270,
+      55,
+    );
+    ctx.fillText(
+      "Collect 🔵 blue particles!",
+      canvas.width - 270,
+      75,
+    );
+    ctx.fillText(
+      "Avoid 🔴 red particles!",
+      canvas.width - 270,
+      95,
+    );
+  }, [gameState]);
+
+  // Mouse movement handler for Earth
+  const handleMouseMove = useCallback(
+    (event: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!gameState.isActive) return;
+
       const canvas = canvasRef.current;
       if (!canvas) return;
 
       const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
 
-      const x = (e.clientX - rect.left) * scaleX;
-      const y = (e.clientY - rect.top) * scaleY;
+      const earth = gameObjectsRef.current.find(
+        (obj) => obj.type === "earth",
+      );
+      if (earth) {
+        earth.x = x;
+        earth.y = y;
+      }
+    },
+    [gameState.isActive],
+  );
 
-      if (creationMode === "fireworks") {
-        // Create firework explosion
-        for (let i = 0; i < 30; i++) {
-          const angle = (Math.PI * 2 * i) / 30;
-          const speed = Math.random() * 5 + 2;
-          const size = Math.random() * 8 + 4;
+  // Canvas click handler for shields
+  const handleCanvasClick = useCallback(
+    (event: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!gameState.isActive) return;
 
-          particlesRef.current.push({
-            id: Math.random(),
-            x: x + Math.cos(angle) * speed * 3,
-            y: y + Math.sin(angle) * speed * 3,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            size: size,
-            color: selectedColor,
-            alpha: 1,
-          });
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      // Create shield at click position
+      gameObjectsRef.current.push({
+        id: `shield_${Date.now()}`,
+        x,
+        y,
+        vx: 0,
+        vy: 0,
+        size: 40,
+        type: "shield",
+      });
+
+      // Protect nearby particles
+      gameObjectsRef.current.forEach((obj) => {
+        if (obj.type === "bad_particle") {
+          const dx = obj.x - x;
+          const dy = obj.y - y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < 60) {
+            obj.protected = true;
+            setGameState((prev) => ({
+              ...prev,
+              score: prev.score + 15,
+            }));
+            playSound("shield");
+          }
         }
-      } else {
-        // Paint mode
-        const particleCount = Math.max(
-          5,
-          Math.floor(brushSize / 8),
-        );
+      });
 
-        for (let i = 0; i < particleCount; i++) {
-          const angle = (Math.PI * 2 * i) / particleCount;
-          const radius = Math.random() * (brushSize / 2);
-          const offsetX = Math.cos(angle) * radius;
-          const offsetY = Math.sin(angle) * radius;
+      playSound("laser");
+    },
+    [gameState.isActive],
+  );
 
-          particlesRef.current.push({
-            id: Math.random(),
-            x: x + offsetX,
-            y: y + offsetY,
-            size:
-              brushSize / 6 + Math.random() * (brushSize / 4),
-            color: selectedColor,
-            alpha: 0.9 + Math.random() * 0.1,
-          });
-        }
+  // Game loop
+  const gameLoop = useCallback(
+    (currentTime: number) => {
+      if (!gameState.isActive) return;
+
+      const deltaTime =
+        (currentTime - lastTimeRef.current) / 1000;
+      lastTimeRef.current = currentTime;
+
+      // Update game based on selected game
+      switch (selectedGame) {
+        case "earth-protector":
+          updateEarthProtector(deltaTime);
+          renderEarthProtector();
+          break;
+        // Add other game renderers here
       }
 
-      playSound("paint");
-    };
+      animationRef.current = requestAnimationFrame(gameLoop);
+    },
+    [
+      selectedGame,
+      gameState.isActive,
+      updateEarthProtector,
+      renderEarthProtector,
+    ],
+  );
 
-    const clearCanvas = () => {
-      particlesRef.current = [];
-      playSound("erase");
-    };
+  const startGame = (gameId: string) => {
+    playSound("click");
+    setGameState({
+      score: 0,
+      level: 1,
+      lives: 3,
+      timeLeft: 120, // 2 minutes
+      isActive: true,
+      isCompleted: false,
+      gameStarted: true,
+      highScore: gameState.highScore,
+      achievements: gameState.achievements,
+    });
 
-    const saveArt = () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+    // Initialize game based on type
+    switch (gameId) {
+      case "earth-protector":
+        initializeEarthProtector();
+        break;
+      // Add other game initializers here
+    }
 
-      const link = document.createElement("a");
-      link.download = `my-aurora-${Date.now()}.png`;
-      link.href = canvas.toDataURL();
-      link.click();
-      playSound("save");
+    // Start game loop
+    lastTimeRef.current = performance.now();
+    animationRef.current = requestAnimationFrame(gameLoop);
+  };
+
+  const endGame = (won: boolean) => {
+    setGameState((prev) => ({
+      ...prev,
+      isActive: false,
+      isCompleted: true,
+      highScore: Math.max(prev.highScore, prev.score),
+    }));
+
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+
+    if (won) {
+      playSound("win");
+      setShowCelebration(true);
+      setTimeout(() => setShowCelebration(false), 4000);
+      setPlayerStats((prev) => ({
+        ...prev,
+        cosmicCoins:
+          prev.cosmicCoins + (50 + gameState.level * 15),
+        gamesWon: prev.gamesWon + 1,
+      }));
+    } else {
+      playSound("wrong");
+    }
+  };
+
+  const resetGame = () => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+
+    setGameState((prev) => ({
+      score: 0,
+      level: 1,
+      lives: 3,
+      timeLeft: 120,
+      isActive: false,
+      isCompleted: false,
+      gameStarted: false,
+      highScore: prev.highScore,
+      achievements: prev.achievements,
+    }));
+
+    gameObjectsRef.current = [];
+  };
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
     };
+  }, []);
+
+  const renderGamePlayer = () => {
+    const game = kidFriendlyGames.find(
+      (g) => g.id === selectedGame,
+    );
+    if (!game) return null;
 
     return (
-      <div className="space-y-8">
-        <div className="text-center">
-          <h2 className="text-5xl font-bold text-white mb-6">
-            🎨 MAGICAL AURORA CREATOR! 🌈
-          </h2>
-          <p className="text-3xl text-white/95 font-bold">
-            Create spectacular northern lights! Choose colors
-            and paint the cosmic sky!
-          </p>
-        </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-4"
+      >
+        {/* Header */}
+        <motion.div
+          className="flex items-center justify-between mb-6 flex-wrap gap-4"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+        >
+          <Button
+            onClick={() => {
+              resetGame();
+              setSelectedGame(null);
+            }}
+            className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            Back to Games
+          </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3">
-            <Card className="bg-black rounded-3xl overflow-hidden border-4 border-white/40 shadow-2xl">
-              <CardContent className="p-0 relative">
-                <canvas
-                  ref={canvasRef}
-                  width={900}
-                  height={700}
-                  className="w-full cursor-crosshair"
-                  onClick={handleCanvasInteraction}
-                  onMouseDown={(e) => {
-                    setIsDrawing(true);
-                    handleCanvasInteraction(e);
-                  }}
-                  onMouseUp={() => setIsDrawing(false)}
-                  onMouseLeave={() => setIsDrawing(false)}
-                  onMouseMove={(e) => {
-                    if (isDrawing) {
-                      handleCanvasInteraction(e);
-                    }
-                  }}
-                />
-
-                <div className="absolute bottom-6 left-6 flex gap-4">
-                  <Button
-                    onClick={clearCanvas}
-                    className="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 shadow-xl"
-                  >
-                    <RotateCcw className="w-6 h-6" />
-                    Clear Sky
-                  </Button>
-
-                  <Button
-                    onClick={saveArt}
-                    className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 shadow-xl"
-                  >
-                    <Download className="w-6 h-6" />
-                    Save Art
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="text-center flex-1">
+            <h2 className="text-2xl md:text-3xl font-bold text-white">
+              {game.title}
+            </h2>
+            <p className="text-cyan-200">{game.gameType}</p>
           </div>
 
-          <div className="space-y-8">
-            <Card className="bg-white/20 backdrop-blur-lg rounded-3xl p-8 border-4 border-white/40 shadow-xl">
-              <h3 className="text-white font-bold text-3xl mb-6 flex items-center gap-3">
-                <Palette className="w-8 h-8" />
-                Creation Mode
-              </h3>
+          <div className="flex items-center gap-4 flex-wrap">
+            <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 md:px-4 py-2">
+              Score: {gameState.score}
+            </Badge>
+            <Badge className="bg-gradient-to-r from-red-400 to-pink-500 text-white px-3 md:px-4 py-2">
+              Lives: {gameState.lives}
+            </Badge>
+            <Badge className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-3 md:px-4 py-2">
+              Time: {gameState.timeLeft}s
+            </Badge>
+          </div>
+        </motion.div>
 
-              <div className="grid grid-cols-1 gap-4">
-                <button
-                  onClick={() => setCreationMode("paint")}
-                  className={`p-6 rounded-2xl font-bold text-center transition-all ${
-                    creationMode === "paint"
-                      ? "bg-blue-500 ring-4 ring-white scale-105"
-                      : "bg-blue-400 hover:scale-102"
-                  }`}
-                >
-                  <div className="text-white text-2xl">
-                    🖌️ Paint Mode
-                  </div>
-                  <div className="text-white/90 text-lg">
-                    Smooth painting
-                  </div>
-                </button>
+        {/* Game Canvas */}
+        <motion.div
+          className="bg-black rounded-3xl p-4 shadow-2xl border-4 border-cyan-400/30 mb-6"
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+        >
+          <canvas
+            ref={canvasRef}
+            width={800}
+            height={600}
+            onMouseMove={handleMouseMove}
+            onClick={handleCanvasClick}
+            className="w-full h-auto rounded-2xl cursor-crosshair border-2 border-white/20"
+            style={{ maxHeight: "400px" }}
+          />
+        </motion.div>
 
-                <button
-                  onClick={() => setCreationMode("fireworks")}
-                  className={`p-6 rounded-2xl font-bold text-center transition-all ${
-                    creationMode === "fireworks"
-                      ? "bg-purple-500 ring-4 ring-white scale-105"
-                      : "bg-purple-400 hover:scale-102"
-                  }`}
-                >
-                  <div className="text-white text-2xl">
-                    🎆 Fireworks Mode
-                  </div>
-                  <div className="text-white/90 text-lg">
-                    Aurora explosions
-                  </div>
-                </button>
+        {/* Game Controls */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <Card className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 border-2 border-purple-400/30">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Gamepad2 className="w-6 h-6" />
+                How to Play
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-white text-sm">
+                {game.kidFriendlyInfo.howToPlay}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-cyan-500/20 to-green-500/20 border-2 border-cyan-400/30">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Lightbulb className="w-6 h-6" />
+                What You Learn
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-white text-sm">
+                {game.kidFriendlyInfo.whatYouLearn}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-500/20 to-red-500/20 border-2 border-orange-400/30">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Trophy className="w-6 h-6" />
+                Your Stats
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-white text-sm">
+                <div>High Score: {gameState.highScore}</div>
+                <div>Level: {gameState.level}</div>
+                <div>Games Won: {playerStats.gamesWon}</div>
               </div>
-            </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-            <Card className="bg-white/20 backdrop-blur-lg rounded-3xl p-8 border-4 border-white/40 shadow-xl">
-              <h3 className="text-white font-bold text-3xl mb-6 flex items-center gap-3">
-                <Sparkles className="w-8 h-8" />
-                Aurora Colors
-              </h3>
+        {/* Game Actions */}
+        <div className="flex justify-center gap-4 flex-wrap">
+          {!gameState.isActive && !gameState.gameStarted && (
+            <Button
+              onClick={() => startGame(selectedGame!)}
+              className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white px-6 md:px-8 py-4 text-lg md:text-xl rounded-2xl"
+            >
+              <Play className="w-5 md:w-6 h-5 md:h-6 mr-2" />
+              Start Game
+            </Button>
+          )}
 
-              <div className="grid grid-cols-2 gap-4">
-                {colors.map((color) => (
-                  <button
-                    key={color.color}
-                    onClick={() => {
-                      setSelectedColor(color.color);
-                      playSound("click");
-                    }}
-                    className={`p-4 rounded-2xl font-bold text-center transition-all ${
-                      selectedColor === color.color
-                        ? "ring-4 ring-white scale-110"
-                        : "hover:scale-105"
-                    }`}
-                    style={{ backgroundColor: color.color }}
+          {gameState.isActive && (
+            <Button
+              onClick={() =>
+                setGameState((prev) => ({
+                  ...prev,
+                  isActive: !prev.isActive,
+                }))
+              }
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-6 md:px-8 py-4 text-lg md:text-xl rounded-2xl"
+            >
+              {gameState.isActive ? (
+                <Pause className="w-5 md:w-6 h-5 md:h-6 mr-2" />
+              ) : (
+                <Play className="w-5 md:w-6 h-5 md:h-6 mr-2" />
+              )}
+              {gameState.isActive ? "Pause" : "Resume"}
+            </Button>
+          )}
+
+          {(gameState.isCompleted || gameState.gameStarted) && (
+            <Button
+              onClick={resetGame}
+              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 md:px-8 py-4 text-lg md:text-xl rounded-2xl"
+            >
+              <RotateCcw className="w-5 md:w-6 h-5 md:h-6 mr-2" />
+              Play Again
+            </Button>
+          )}
+
+          <Button
+            onClick={() => setShowInstructions(true)}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 md:px-8 py-4 text-lg md:text-xl rounded-2xl"
+          >
+            <HelpCircle className="w-5 md:w-6 h-5 md:h-6 mr-2" />
+            Help
+          </Button>
+        </div>
+
+        {/* Instructions Modal */}
+        <AnimatePresence>
+          {showInstructions && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              onClick={() => setShowInstructions(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.5, opacity: 0 }}
+                className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-3xl p-6 md:p-8 max-w-2xl w-full border-4 border-white"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                    <HelpCircle className="w-8 h-8" />
+                    How to Play {game.title}
+                  </h3>
+                  <Button
+                    onClick={() => setShowInstructions(false)}
+                    className="bg-white/20 hover:bg-white/30 text-white rounded-full p-2"
                   >
-                    <div className="text-white drop-shadow-lg">
-                      <div className="font-bold text-lg">
-                        {color.name}
-                      </div>
-                      <div className="text-sm opacity-90">
-                        {color.gas}
-                      </div>
-                      <div className="text-xs opacity-80">
-                        {color.description}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </Card>
-
-            {creationMode === "paint" && (
-              <Card className="bg-white/20 backdrop-blur-lg rounded-3xl p-8 border-4 border-white/40 shadow-xl">
-                <h3 className="text-white font-bold text-3xl mb-6 flex items-center gap-3">
-                  <Target className="w-8 h-8" />
-                  Brush Size
-                </h3>
+                    <X className="w-6 h-6" />
+                  </Button>
+                </div>
 
                 <div className="space-y-6">
-                  <div className="flex items-center justify-center">
-                    <div
-                      className="rounded-full border-4 border-white shadow-lg"
-                      style={{
-                        backgroundColor: selectedColor,
-                        width: `${Math.min(brushSize, 80)}px`,
-                        height: `${Math.min(brushSize, 80)}px`,
-                        boxShadow: `0 0 20px ${selectedColor}`,
-                      }}
-                    />
+                  <div className="bg-white/20 rounded-2xl p-4">
+                    <h4 className="text-xl font-bold text-yellow-300 mb-2">
+                      What You Do:
+                    </h4>
+                    <p className="text-white text-base md:text-lg">
+                      {game.kidFriendlyInfo.whatYouDo}
+                    </p>
                   </div>
 
-                  <input
-                    type="range"
-                    min="20"
-                    max="120"
-                    value={brushSize}
-                    onChange={(e) =>
-                      setBrushSize(Number(e.target.value))
-                    }
-                    className="w-full h-8 rounded-lg appearance-none cursor-pointer"
-                    style={{
-                      background: `linear-gradient(to right, ${selectedColor}, ${selectedColor})`,
-                    }}
-                  />
+                  <div className="bg-white/20 rounded-2xl p-4">
+                    <h4 className="text-xl font-bold text-green-300 mb-2">
+                      How to Play:
+                    </h4>
+                    <p className="text-white text-base md:text-lg">
+                      {game.kidFriendlyInfo.howToPlay}
+                    </p>
+                  </div>
 
-                  <div className="text-white text-center font-bold text-3xl">
-                    {brushSize}px
+                  <div className="bg-white/20 rounded-2xl p-4">
+                    <h4 className="text-xl font-bold text-purple-300 mb-2">
+                      Controls:
+                    </h4>
+                    <p className="text-white text-base md:text-lg">
+                      {game.controls}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/20 rounded-2xl p-4">
+                    <h4 className="text-xl font-bold text-cyan-300 mb-2">
+                      Word Helper:
+                    </h4>
+                    <div className="space-y-2">
+                      {game.kidFriendlyInfo.vocabulary.map(
+                        (vocab, index) => (
+                          <div
+                            key={index}
+                            className="text-white"
+                          >
+                            <strong className="text-yellow-300">
+                              {vocab.word}:
+                            </strong>{" "}
+                            {vocab.meaning}
+                          </div>
+                        ),
+                      )}
+                    </div>
                   </div>
                 </div>
-              </Card>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
 
-  // Space Navigator Game
-  const SpaceNavigator = () => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const animationRef = useRef<number>();
-    const [gameState, setGameState] = useState<
-      "playing" | "paused" | "gameOver"
-    >("playing");
-    const [score, setScore] = useState(0);
-    const [lives, setLives] = useState(10);
-    const [fuel, setFuel] = useState(100);
-    const [playerPos, setPlayerPos] = useState({
-      x: 400,
-      y: 500,
-    });
-    const [velocity, setVelocity] = useState({ x: 0, y: 0 });
-    const keysPressed = useRef<Set<string>>(new Set());
-    const obstaclesRef = useRef<any[]>([]);
-    const collectiblesRef = useRef<any[]>([]);
-
-    // Key handling
-    useEffect(() => {
-      const handleKeyDown = (e: KeyboardEvent) => {
-        keysPressed.current.add(e.key.toLowerCase());
-      };
-
-      const handleKeyUp = (e: KeyboardEvent) => {
-        keysPressed.current.delete(e.key.toLowerCase());
-      };
-
-      window.addEventListener("keydown", handleKeyDown);
-      window.addEventListener("keyup", handleKeyUp);
-
-      return () => {
-        window.removeEventListener("keydown", handleKeyDown);
-        window.removeEventListener("keyup", handleKeyUp);
-      };
-    }, []);
-
-    useEffect(() => {
-      if (gameState !== "playing") return;
-
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      const gameLoop = () => {
-        // Space background
-        const gradient = ctx.createRadialGradient(
-          canvas.width / 2,
-          canvas.height / 2,
-          0,
-          canvas.width / 2,
-          canvas.height / 2,
-          canvas.width,
-        );
-        gradient.addColorStop(0, "#1a1a4e");
-        gradient.addColorStop(1, "#0a0a2e");
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Moving stars
-        for (let i = 0; i < 100; i++) {
-          const x = (i * 67 + Date.now() * 0.05) % canvas.width;
-          const y = (i * 43) % canvas.height;
-          const brightness =
-            0.3 + Math.sin(Date.now() * 0.001 + i) * 0.4;
-          ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
-          ctx.fillRect(x, y, 2, 2);
-        }
-
-        // Handle input
-        let thrustX = 0,
-          thrustY = 0;
-        if (
-          keysPressed.current.has("arrowleft") ||
-          keysPressed.current.has("a")
-        )
-          thrustX = -0.5;
-        if (
-          keysPressed.current.has("arrowright") ||
-          keysPressed.current.has("d")
-        )
-          thrustX = 0.5;
-        if (
-          keysPressed.current.has("arrowup") ||
-          keysPressed.current.has("w")
-        )
-          thrustY = -0.5;
-        if (
-          keysPressed.current.has("arrowdown") ||
-          keysPressed.current.has("s")
-        )
-          thrustY = 0.5;
-
-        if (thrustX !== 0 || thrustY !== 0) {
-          setFuel((f) => Math.max(0, f - 0.2));
-          if (fuel > 0) {
-            setVelocity((v) => ({
-              x: Math.max(-8, Math.min(8, v.x + thrustX)),
-              y: Math.max(-8, Math.min(8, v.y + thrustY)),
-            }));
-          }
-        }
-
-        // Apply physics
-        setPlayerPos((pos) => ({
-          x: Math.max(
-            50,
-            Math.min(canvas.width - 50, pos.x + velocity.x),
-          ),
-          y: Math.max(
-            50,
-            Math.min(canvas.height - 50, pos.y + velocity.y),
-          ),
-        }));
-
-        setVelocity((v) => ({
-          x: v.x * 0.98,
-          y: v.y * 0.98,
-        }));
-
-        // Spawn obstacles
-        if (Math.random() < 0.02) {
-          obstaclesRef.current.push({
-            id: Math.random(),
-            x: Math.random() * canvas.width,
-            y: -30,
-            vy: Math.random() * 3 + 2,
-            size: Math.random() * 30 + 20,
-            type: "asteroid",
-            rotation: 0,
-          });
-        }
-
-        // Spawn collectibles
-        if (Math.random() < 0.015) {
-          collectiblesRef.current.push({
-            id: Math.random(),
-            x: Math.random() * canvas.width,
-            y: -20,
-            vy: 2,
-            size: 20,
-            type: Math.random() < 0.3 ? "fuel" : "star",
-            rotation: 0,
-          });
-        }
-
-        // Update obstacles
-        obstaclesRef.current = obstaclesRef.current
-          .map((obs) => ({
-            ...obs,
-            y: obs.y + obs.vy,
-            rotation: obs.rotation + 0.05,
-          }))
-          .filter((obs) => {
-            const distance = Math.sqrt(
-              (obs.x - playerPos.x) ** 2 +
-                (obs.y - playerPos.y) ** 2,
-            );
-            if (distance < obs.size + 40) {
-              setLives((l) => l - 1);
-              if (lives <= 1) setGameState("gameOver");
-              playSound("hit");
-              return false;
-            }
-            return obs.y < canvas.height + 50;
-          });
-
-        // Update collectibles
-        collectiblesRef.current = collectiblesRef.current
-          .map((col) => ({
-            ...col,
-            y: col.y + col.vy,
-            rotation: col.rotation + 0.1,
-          }))
-          .filter((col) => {
-            const distance = Math.sqrt(
-              (col.x - playerPos.x) ** 2 +
-                (col.y - playerPos.y) ** 2,
-            );
-            if (distance < col.size + 40) {
-              if (col.type === "fuel") {
-                setFuel((f) => Math.min(100, f + 20));
-                playSound("fuel");
-              } else {
-                setScore((s) => s + 100);
-                playSound("collect");
-              }
-              return false;
-            }
-            return col.y < canvas.height + 50;
-          });
-
-        // Draw obstacles
-        obstaclesRef.current.forEach((obs) => {
-          ctx.save();
-          ctx.translate(obs.x, obs.y);
-          ctx.rotate(obs.rotation);
-          ctx.fillStyle = "#ff4444";
-          ctx.shadowColor = "#ff4444";
-          ctx.shadowBlur = 15;
-
-          // Draw asteroid
-          ctx.beginPath();
-          for (let i = 0; i < 8; i++) {
-            const angle = (i * Math.PI * 2) / 8;
-            const radius =
-              obs.size * (0.8 + Math.sin(i * 3) * 0.2);
-            const x = Math.cos(angle) * radius;
-            const y = Math.sin(angle) * radius;
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-          }
-          ctx.closePath();
-          ctx.fill();
-          ctx.restore();
-        });
-
-        // Draw collectibles
-        collectiblesRef.current.forEach((col) => {
-          ctx.save();
-          ctx.translate(col.x, col.y);
-          ctx.rotate(col.rotation);
-
-          if (col.type === "fuel") {
-            ctx.fillStyle = "#00ff88";
-            ctx.shadowColor = "#00ff88";
-            ctx.shadowBlur = 20;
-            // Draw fuel tank
-            ctx.fillRect(
-              -col.size / 2,
-              -col.size / 2,
-              col.size,
-              col.size,
-            );
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(
-              -col.size / 4,
-              -col.size / 4,
-              col.size / 2,
-              col.size / 2,
-            );
-          } else {
-            ctx.fillStyle = "#ffdd00";
-            ctx.shadowColor = "#ffdd00";
-            ctx.shadowBlur = 20;
-            // Draw star
-            ctx.beginPath();
-            for (let i = 0; i < 5; i++) {
-              const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
-              const x = Math.cos(angle) * col.size;
-              const y = Math.sin(angle) * col.size;
-              if (i === 0) ctx.moveTo(x, y);
-              else ctx.lineTo(x, y);
-
-              const innerAngle =
-                ((i + 0.5) * Math.PI * 2) / 5 - Math.PI / 2;
-              const innerX =
-                Math.cos(innerAngle) * (col.size * 0.4);
-              const innerY =
-                Math.sin(innerAngle) * (col.size * 0.4);
-              ctx.lineTo(innerX, innerY);
-            }
-            ctx.closePath();
-            ctx.fill();
-          }
-          ctx.restore();
-        });
-
-        // Draw spaceship with thrust effects
-        ctx.save();
-        ctx.translate(playerPos.x, playerPos.y);
-
-        // Thrust effects
-        if ((thrustX !== 0 || thrustY !== 0) && fuel > 0) {
-          ctx.fillStyle = "#00aaff";
-          ctx.shadowColor = "#00aaff";
-          ctx.shadowBlur = 20;
-          ctx.beginPath();
-          ctx.arc(-20, 0, 15, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.fillStyle = "#ffffff";
-          ctx.beginPath();
-          ctx.arc(-20, 0, 8, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Spaceship body
-        ctx.fillStyle = "#4488ff";
-        ctx.shadowColor = "#4488ff";
-        ctx.shadowBlur = 15;
-        ctx.beginPath();
-        ctx.moveTo(30, 0);
-        ctx.lineTo(-20, -15);
-        ctx.lineTo(-15, 0);
-        ctx.lineTo(-20, 15);
-        ctx.closePath();
-        ctx.fill();
-
-        // Cockpit
-        ctx.fillStyle = "#88ccff";
-        ctx.beginPath();
-        ctx.arc(0, 0, 12, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.restore();
-
-        // Enhanced UI
-        ctx.save();
-        ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
-        ctx.fillRect(0, 0, canvas.width, 100);
-
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 24px Arial";
-        ctx.fillText(`⭐ Score: ${score}`, 30, 40);
-        ctx.fillText(`💖 Lives: ${lives}`, 200, 40);
-
-        // Fuel bar
-        ctx.fillStyle = "#666";
-        ctx.fillRect(400, 20, 200, 20);
-        ctx.fillStyle = fuel > 30 ? "#00ff00" : "#ff4444";
-        ctx.fillRect(402, 22, (fuel / 100) * 196, 16);
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText(`⛽ Fuel: ${Math.round(fuel)}%`, 400, 60);
-
-        ctx.fillStyle = "#ffdd00";
-        ctx.font = "bold 18px Arial";
-        ctx.fillText("Use WASD or Arrow Keys to fly!", 30, 80);
-        ctx.restore();
-
-        setScore((s) => s + 1);
-
-        if (gameState === "playing") {
-          animationRef.current =
-            requestAnimationFrame(gameLoop);
-        }
-      };
-
-      gameLoop();
-
-      return () => {
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current);
-        }
-      };
-    }, [gameState, playerPos, velocity, fuel, lives, score]);
-
-    if (gameState === "gameOver") {
-      return (
-        <div className="text-center space-y-8">
-          <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-6xl font-bold text-white mb-6">
-              🚀 STELLAR JOURNEY! 🚀
-            </h2>
-            <div className="text-8xl font-bold text-cyan-400 mb-6">
-              {score}
-            </div>
-            <p className="text-white text-3xl mb-8">
-              Amazing Space Navigation!
-            </p>
-
-            <div className="flex justify-center gap-6">
-              <Button
-                onClick={() => {
-                  setGameState("playing");
-                  setScore(0);
-                  setLives(10);
-                  setFuel(100);
-                  setPlayerPos({ x: 400, y: 500 });
-                  setVelocity({ x: 0, y: 0 });
-                  obstaclesRef.current = [];
-                  collectiblesRef.current = [];
-                }}
-                className="bg-green-500 hover:bg-green-600 text-white px-10 py-6 text-3xl rounded-2xl font-bold shadow-xl"
-              >
-                🚀 Fly Again!
-              </Button>
-
-              <Button
-                onClick={() => setSelectedGame(null)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-10 py-6 text-3xl rounded-2xl font-bold shadow-xl"
-              >
-                🎮 More Games
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-8">
-        <div className="text-center">
-          <h2 className="text-5xl font-bold text-white mb-6">
-            🚀 SPACE SHIP ADVENTURE! 🚀
-          </h2>
-          <p className="text-white text-2xl">
-            Navigate through space! Use WASD or Arrow Keys to
-            fly!
-          </p>
-        </div>
-
-        <Card className="bg-black border-4 border-white/40 overflow-hidden shadow-2xl">
-          <CardContent className="p-0">
-            <canvas
-              ref={canvasRef}
-              width={800}
-              height={600}
-              className="w-full"
-              tabIndex={0}
-            />
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-center gap-6">
-          <Button
-            onClick={() =>
-              setGameState(
-                gameState === "paused" ? "playing" : "paused",
-              )
-            }
-            className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-4 text-2xl rounded-2xl font-bold shadow-xl"
-          >
-            {gameState === "paused" ? (
-              <Play className="w-6 h-6 mr-3" />
-            ) : (
-              <Pause className="w-6 h-6 mr-3" />
-            )}
-            {gameState === "paused" ? "Resume" : "Pause"}
-          </Button>
-
-          <Button
-            onClick={() => setSelectedGame(null)}
-            className="bg-red-500 hover:bg-red-600 text-white px-8 py-4 text-2xl rounded-2xl font-bold shadow-xl"
-          >
-            <Home className="w-6 h-6 mr-3" />
-            Back to Games
-          </Button>
-        </div>
-      </div>
-    );
-  };
-
-  // Satellite Defense Game
-  const SatelliteDefense = () => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const animationRef = useRef<number>();
-    const [gameState, setGameState] = useState<
-      "playing" | "paused" | "gameOver"
-    >("playing");
-    const [score, setScore] = useState(0);
-    const [shieldEnergy, setShieldEnergy] = useState(100);
-    const [satellitesLeft, setSatellitesLeft] = useState(5);
-    const [mousePos, setMousePos] = useState({
-      x: 400,
-      y: 300,
-    });
-    const threatsRef = useRef<any[]>([]);
-    const satellitesRef = useRef<any[]>([
-      { id: 1, x: 150, y: 150, health: 100, protected: false },
-      { id: 2, x: 650, y: 150, health: 100, protected: false },
-      { id: 3, x: 400, y: 100, health: 100, protected: false },
-      { id: 4, x: 200, y: 400, health: 100, protected: false },
-      { id: 5, x: 600, y: 400, health: 100, protected: false },
-    ]);
-
-    useEffect(() => {
-      if (gameState !== "playing") return;
-
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      const gameLoop = () => {
-        // Space background
-        const gradient = ctx.createRadialGradient(
-          canvas.width / 2,
-          canvas.height / 2,
-          0,
-          canvas.width / 2,
-          canvas.height / 2,
-          canvas.width,
-        );
-        gradient.addColorStop(0, "#001122");
-        gradient.addColorStop(1, "#000008");
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Earth in center
-        ctx.save();
-        ctx.fillStyle = "#4488cc";
-        ctx.shadowColor = "#4488cc";
-        ctx.shadowBlur = 30;
-        ctx.beginPath();
-        ctx.arc(
-          canvas.width / 2,
-          canvas.height / 2,
-          80,
-          0,
-          Math.PI * 2,
-        );
-        ctx.fill();
-
-        ctx.fillStyle = "#22aa44";
-        ctx.shadowBlur = 15;
-        // Draw continents
-        ctx.beginPath();
-        ctx.arc(
-          canvas.width / 2 - 20,
-          canvas.height / 2 - 20,
-          25,
-          0,
-          Math.PI * 2,
-        );
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(
-          canvas.width / 2 + 30,
-          canvas.height / 2 + 10,
-          20,
-          0,
-          Math.PI * 2,
-        );
-        ctx.fill();
-        ctx.restore();
-
-        // Spawn space weather threats
-        if (Math.random() < 0.02) {
-          const angle = Math.random() * Math.PI * 2;
-          const startDistance = 400;
-          threatsRef.current.push({
-            id: Math.random(),
-            x:
-              canvas.width / 2 +
-              Math.cos(angle) * startDistance,
-            y:
-              canvas.height / 2 +
-              Math.sin(angle) * startDistance,
-            targetX: canvas.width / 2,
-            targetY: canvas.height / 2,
-            speed: 1 + Math.random(),
-            size: 15 + Math.random() * 10,
-            type: Math.random() < 0.6 ? "flare" : "particle",
-            energy: 20,
-          });
-        }
-
-        // Update threats
-        threatsRef.current = threatsRef.current
-          .map((threat) => {
-            const dx = threat.targetX - threat.x;
-            const dy = threat.targetY - threat.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance > 5) {
-              return {
-                ...threat,
-                x: threat.x + (dx / distance) * threat.speed,
-                y: threat.y + (dy / distance) * threat.speed,
-              };
-            }
-            return threat;
-          })
-          .filter((threat) => {
-            // Check if threat hits satellites
-            let blocked = false;
-            satellitesRef.current = satellitesRef.current.map(
-              (sat) => {
-                const satDistance = Math.sqrt(
-                  (threat.x - sat.x) ** 2 +
-                    (threat.y - sat.y) ** 2,
-                );
-                if (satDistance < 60 && !sat.protected) {
-                  return {
-                    ...sat,
-                    health: Math.max(
-                      0,
-                      sat.health - threat.energy,
-                    ),
-                  };
-                }
-                return sat;
-              },
-            );
-
-            // Check if threat is blocked by shield
-            const shieldDistance = Math.sqrt(
-              (threat.x - mousePos.x) ** 2 +
-                (threat.y - mousePos.y) ** 2,
-            );
-            if (shieldDistance < 80) {
-              setShieldEnergy((e) => Math.max(0, e - 5));
-              setScore((s) => s + 50);
-              playSound("shield");
-              blocked = true;
-            }
-
-            // Check if threat reaches Earth
-            const earthDistance = Math.sqrt(
-              (threat.x - canvas.width / 2) ** 2 +
-                (threat.y - canvas.height / 2) ** 2,
-            );
-            if (earthDistance < 100) {
-              blocked = true;
-            }
-
-            return !blocked;
-          });
-
-        // Update satellite count
-        const activeSatellites = satellitesRef.current.filter(
-          (sat) => sat.health > 0,
-        ).length;
-        setSatellitesLeft(activeSatellites);
-
-        if (activeSatellites === 0) {
-          setGameState("gameOver");
-        }
-
-        // Draw threats
-        threatsRef.current.forEach((threat) => {
-          ctx.save();
-          if (threat.type === "flare") {
-            ctx.fillStyle = "#ffaa00";
-            ctx.shadowColor = "#ffaa00";
-            ctx.shadowBlur = 20;
-          } else {
-            ctx.fillStyle = "#ff4444";
-            ctx.shadowColor = "#ff4444";
-            ctx.shadowBlur = 15;
-          }
-          ctx.beginPath();
-          ctx.arc(
-            threat.x,
-            threat.y,
-            threat.size,
-            0,
-            Math.PI * 2,
-          );
-          ctx.fill();
-
-          // Trail effect
-          ctx.strokeStyle =
-            threat.type === "flare" ? "#ffaa00" : "#ff4444";
-          ctx.lineWidth = 3;
-          ctx.globalAlpha = 0.5;
-          ctx.beginPath();
-          ctx.moveTo(threat.x, threat.y);
-          ctx.lineTo(
-            threat.x - (threat.targetX - threat.x) * 0.1,
-            threat.y - (threat.targetY - threat.y) * 0.1,
-          );
-          ctx.stroke();
-          ctx.restore();
-        });
-
-        // Draw satellites
-        satellitesRef.current.forEach((sat) => {
-          ctx.save();
-          ctx.translate(sat.x, sat.y);
-
-          if (sat.health > 0) {
-            // Satellite body
-            ctx.fillStyle =
-              sat.health > 50 ? "#00aaff" : "#ff8800";
-            ctx.shadowColor =
-              sat.health > 50 ? "#00aaff" : "#ff8800";
-            ctx.shadowBlur = 20;
-            ctx.fillRect(-15, -8, 30, 16);
-
-            // Solar panels
-            ctx.fillStyle = "#444";
-            ctx.fillRect(-25, -12, 15, 24);
-            ctx.fillRect(10, -12, 15, 24);
-
-            // Health bar
-            ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-            ctx.fillRect(-20, -30, 40, 8);
-            ctx.fillStyle =
-              sat.health > 50
-                ? "#00ff00"
-                : sat.health > 25
-                  ? "#ffaa00"
-                  : "#ff0000";
-            ctx.fillRect(-18, -28, (sat.health / 100) * 36, 4);
-          } else {
-            // Destroyed satellite
-            ctx.fillStyle = "#666";
-            ctx.fillRect(-10, -5, 20, 10);
-          }
-
-          ctx.restore();
-        });
-
-        // Draw shield at mouse position
-        if (shieldEnergy > 0) {
-          ctx.save();
-          ctx.globalAlpha = 0.6;
-          ctx.fillStyle = "#00ffaa";
-          ctx.shadowColor = "#00ffaa";
-          ctx.shadowBlur = 30;
-          ctx.beginPath();
-          ctx.arc(mousePos.x, mousePos.y, 80, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.globalAlpha = 0.3;
-          ctx.fillStyle = "#ffffff";
-          ctx.beginPath();
-          ctx.arc(mousePos.x, mousePos.y, 60, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        }
-
-        // UI
-        ctx.save();
-        ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
-        ctx.fillRect(0, 0, canvas.width, 80);
-
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 20px Arial";
-        ctx.fillText(
-          `🛰️ Satellites: ${satellitesLeft}`,
-          30,
-          35,
-        );
-        ctx.fillText(`⭐ Score: ${score}`, 200, 35);
-
-        // Shield energy bar
-        ctx.fillText(
-          `🛡️ Shield: ${Math.round(shieldEnergy)}%`,
-          350,
-          35,
-        );
-        ctx.fillStyle = "#666";
-        ctx.fillRect(350, 45, 150, 15);
-        ctx.fillStyle =
-          shieldEnergy > 30 ? "#00ff00" : "#ff4444";
-        ctx.fillRect(352, 47, (shieldEnergy / 100) * 146, 11);
-
-        ctx.fillStyle = "#ffdd00";
-        ctx.font = "bold 16px Arial";
-        ctx.fillText(
-          "Move mouse to position shield and protect satellites!",
-          30,
-          70,
-        );
-        ctx.restore();
-
-        setScore((s) => s + 5);
-        if (shieldEnergy < 100)
-          setShieldEnergy((e) => Math.min(100, e + 0.1));
-
-        if (gameState === "playing") {
-          animationRef.current =
-            requestAnimationFrame(gameLoop);
-        }
-      };
-
-      gameLoop();
-
-      return () => {
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current);
-        }
-      };
-    }, [
-      gameState,
-      mousePos,
-      shieldEnergy,
-      satellitesLeft,
-      score,
-    ]);
-
-    // Mouse controls
-    useEffect(() => {
-      const canvas = canvasRef.current;
-      if (!canvas || gameState !== "playing") return;
-
-      const handleMouseMove = (e: MouseEvent) => {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-
-        const mouseX = (e.clientX - rect.left) * scaleX;
-        const mouseY = (e.clientY - rect.top) * scaleY;
-
-        setMousePos({ x: mouseX, y: mouseY });
-      };
-
-      canvas.addEventListener("mousemove", handleMouseMove);
-
-      return () => {
-        canvas.removeEventListener(
-          "mousemove",
-          handleMouseMove,
-        );
-      };
-    }, [gameState]);
-
-    if (gameState === "gameOver") {
-      return (
-        <div className="text-center space-y-8">
-          <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-6xl font-bold text-white mb-6">
-              🛰️ MISSION COMPLETE! 🛰️
-            </h2>
-            <div className="text-8xl font-bold text-green-400 mb-6">
-              {score}
-            </div>
-            <p className="text-white text-3xl mb-8">
-              Excellent Defense Strategy!
-            </p>
-
-            <div className="flex justify-center gap-6">
-              <Button
-                onClick={() => {
-                  setGameState("playing");
-                  setScore(0);
-                  setShieldEnergy(100);
-                  setSatellitesLeft(5);
-                  threatsRef.current = [];
-                  satellitesRef.current = [
-                    {
-                      id: 1,
-                      x: 150,
-                      y: 150,
-                      health: 100,
-                      protected: false,
-                    },
-                    {
-                      id: 2,
-                      x: 650,
-                      y: 150,
-                      health: 100,
-                      protected: false,
-                    },
-                    {
-                      id: 3,
-                      x: 400,
-                      y: 100,
-                      health: 100,
-                      protected: false,
-                    },
-                    {
-                      id: 4,
-                      x: 200,
-                      y: 400,
-                      health: 100,
-                      protected: false,
-                    },
-                    {
-                      id: 5,
-                      x: 600,
-                      y: 400,
-                      health: 100,
-                      protected: false,
-                    },
-                  ];
-                }}
-                className="bg-green-500 hover:bg-green-600 text-white px-10 py-6 text-3xl rounded-2xl font-bold shadow-xl"
-              >
-                🚀 Defend Again!
-              </Button>
-
-              <Button
-                onClick={() => setSelectedGame(null)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-10 py-6 text-3xl rounded-2xl font-bold shadow-xl"
-              >
-                🎮 More Games
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-8">
-        <div className="text-center">
-          <h2 className="text-5xl font-bold text-white mb-6">
-            🛰️ SATELLITE PROTECTOR! 🛰️
-          </h2>
-          <p className="text-white text-2xl">
-            Move your mouse to position the shield and protect
-            Earth's satellites!
-          </p>
-        </div>
-
-        <Card className="bg-black border-4 border-white/40 overflow-hidden shadow-2xl">
-          <CardContent className="p-0">
-            <canvas
-              ref={canvasRef}
-              width={800}
-              height={600}
-              className="w-full cursor-none"
-            />
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-center gap-6">
-          <Button
-            onClick={() =>
-              setGameState(
-                gameState === "paused" ? "playing" : "paused",
-              )
-            }
-            className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-4 text-2xl rounded-2xl font-bold shadow-xl"
-          >
-            {gameState === "paused" ? (
-              <Play className="w-6 h-6 mr-3" />
-            ) : (
-              <Pause className="w-6 h-6 mr-3" />
-            )}
-            {gameState === "paused" ? "Resume" : "Pause"}
-          </Button>
-
-          <Button
-            onClick={() => setSelectedGame(null)}
-            className="bg-red-500 hover:bg-red-600 text-white px-8 py-4 text-2xl rounded-2xl font-bold shadow-xl"
-          >
-            <Home className="w-6 h-6 mr-3" />
-            Back to Games
-          </Button>
-        </div>
-      </div>
-    );
-  };
-
-  // Render selected game
-  const renderSelectedGame = () => {
-    switch (selectedGame) {
-      case "solar-flare-catcher":
-        return <SolarFlareCatcher />;
-      case "aurora-creator":
-        return <AuroraCreator />;
-      case "cosmic-dodger":
-        return <SpaceNavigator />;
-      case "satellite-defense":
-        return <SatelliteDefense />;
-      default:
-        return null;
-    }
-  };
-
-  // Main component render
-  if (!selectedGame) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6 relative overflow-hidden">
-        {/* Enhanced background effects */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [0, -100, 0],
-                x: [0, Math.sin(i) * 50, 0],
-                opacity: [0.2, 0.8, 0.2],
-                rotate: [0, 360],
-                scale: [0.5, 1.5, 0.5],
-              }}
-              transition={{
-                duration: 8 + Math.random() * 8,
-                repeat: Infinity,
-                delay: Math.random() * 5,
-                ease: "easeInOut",
-              }}
-            >
-              {i % 4 === 0 ? (
-                <Stars className="w-8 h-8 text-yellow-300" />
-              ) : i % 4 === 1 ? (
-                <Sparkles className="w-6 h-6 text-pink-300" />
-              ) : i % 4 === 2 ? (
-                <Rocket className="w-7 h-7 text-cyan-300" />
-              ) : (
-                <div className="w-5 h-5 rounded-full bg-gradient-to-r from-purple-300 to-blue-300" />
-              )}
+                <div className="mt-6 text-center">
+                  <Button
+                    onClick={() => setShowInstructions(false)}
+                    className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white px-8 py-3 text-xl rounded-2xl"
+                  >
+                    Got it! Let's Play! 🚀
+                  </Button>
+                </div>
+              </motion.div>
             </motion.div>
-          ))}
-        </div>
+          )}
+        </AnimatePresence>
 
-        <div className="relative z-10 max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <Button
-              onClick={() => {
-                playSound("click");
-                onBack();
-              }}
-              className="flex items-center gap-3 bg-white/25 backdrop-blur-lg hover:bg-white/35 text-white border-4 border-white/40 text-2xl px-8 py-4 rounded-2xl font-bold shadow-xl"
+        {/* Celebration */}
+        <AnimatePresence>
+          {showCelebration && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-gradient-to-br from-purple-900/90 to-cyan-900/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             >
-              <ChevronLeft className="w-6 h-6" />
-              Back to Home
-            </Button>
-          </div>
-
-          {renderGameSelection()}
-        </div>
-      </div>
+              <motion.div
+                initial={{ scale: 0.5, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0.5, rotate: 180 }}
+                className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-3xl p-8 md:p-12 max-w-2xl mx-4 text-center border-4 border-white shadow-2xl"
+              >
+                <motion.div
+                  animate={{
+                    rotate: [0, 15, -15, 0],
+                    scale: [1, 1.3, 1],
+                  }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                  className="text-6xl md:text-8xl mb-6"
+                >
+                  🏆
+                </motion.div>
+                <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                  Amazing Job!
+                </h3>
+                <p className="text-white text-lg md:text-xl mb-6">
+                  You're a space weather hero! You earned{" "}
+                  {gameState.score} points!
+                </p>
+                <div className="flex justify-center gap-4">
+                  {[...Array(5)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      animate={{
+                        y: [0, -20, 0],
+                        rotate: [0, 360],
+                        scale: [1, 1.5, 1],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        delay: i * 0.2,
+                      }}
+                      className="text-3xl md:text-4xl"
+                    >
+                      ⭐
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     );
-  }
+  };
 
-  // Render selected game
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6 relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(15)].map((_, i) => (
+  const renderGameSelection = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-4"
+    >
+      {/* Header */}
+      <motion.div
+        className="flex items-center justify-between mb-8 flex-wrap gap-4"
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+      >
+        <Button
+          onClick={onBack}
+          className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-lg md:text-xl px-4 md:px-6 py-3 rounded-2xl"
+        >
+          <Home className="w-5 md:w-6 h-5 md:h-6" />
+          Back to Home
+        </Button>
+
+        <div className="text-center flex-1">
+          <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent mb-2">
+            🎮 Fun Space Weather Games
+          </h1>
+          <p className="text-lg md:text-xl text-cyan-200">
+            Play super fun games and learn about space weather!
+          </p>
+        </div>
+
+        <div className="flex items-center gap-4 flex-wrap">
+          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 md:px-4 py-2 text-base md:text-lg">
+            Coins: {playerStats.cosmicCoins}
+          </Badge>
+          <Badge className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-3 md:px-4 py-2 text-base md:text-lg">
+            Won: {playerStats.gamesWon}
+          </Badge>
+        </div>
+      </motion.div>
+
+      {/* Player Stats */}
+      <motion.div
+        className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-3xl p-6 mb-8 border-2 border-purple-400/30"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+          <h3 className="text-2xl font-bold text-white">
+            Your Gaming Adventure
+          </h3>
+          <Crown className="w-8 h-8 text-yellow-400" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="text-center">
+            <div className="text-3xl md:text-4xl font-bold text-purple-400">
+              {playerStats.cosmicCoins}
+            </div>
+            <div className="text-purple-200">Cosmic Coins</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl md:text-4xl font-bold text-green-400">
+              {playerStats.gamesWon}
+            </div>
+            <div className="text-green-200">Games Won</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl md:text-4xl font-bold text-blue-400">
+              {playerStats.totalPlayTime}
+            </div>
+            <div className="text-blue-200">Play Time</div>
+          </div>
+          <div className="text-center">
+            <div className="text-xl md:text-2xl font-bold text-cyan-400">
+              {playerStats.favoriteGame}
+            </div>
+            <div className="text-cyan-200">Favorite Game</div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Games Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        {kidFriendlyGames.map((game, index) => (
           <motion.div
-            key={i}
-            className="absolute"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+            key={game.id}
+            initial={{ opacity: 0, y: 30, rotateY: 15 }}
+            animate={{ opacity: 1, y: 0, rotateY: 0 }}
+            transition={{ delay: index * 0.1 }}
+            whileHover={{
+              scale: 1.03,
+              rotateY: 3,
+              transition: { duration: 0.3 },
             }}
-            animate={{
-              y: [0, -150, 0],
-              opacity: [0.1, 0.6, 0.1],
-              rotate: [0, 360],
-            }}
-            transition={{
-              duration: 12 + Math.random() * 8,
-              repeat: Infinity,
-              delay: Math.random() * 5,
-            }}
+            whileTap={{ scale: 0.97 }}
           >
-            <Stars className="w-6 h-6 text-white/30" />
+            <Card
+              className={`bg-gradient-to-br ${game.gradient} border-2 border-white/30 shadow-2xl cursor-pointer h-full overflow-hidden`}
+            >
+              <CardHeader className="text-center relative">
+                {/* Floating particles effect */}
+                <div className="absolute inset-0">
+                  {[...Array(6)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute w-3 h-3 rounded-full bg-white/60"
+                      style={{
+                        left: `${20 + i * 10}%`,
+                        top: `${30 + (i % 3) * 20}%`,
+                      }}
+                      animate={{
+                        y: [0, -20, 0],
+                        opacity: [0.3, 1, 0.3],
+                        scale: [0.5, 1, 0.5],
+                      }}
+                      transition={{
+                        duration: 2 + i * 0.3,
+                        repeat: Infinity,
+                        delay: i * 0.4,
+                      }}
+                    />
+                  ))}
+                </div>
+
+                <motion.div
+                  className="text-6xl md:text-8xl mb-4 relative z-10"
+                  animate={{
+                    rotate: [0, 10, -10, 0],
+                    scale: [1, 1.1, 1],
+                  }}
+                  transition={{ duration: 4, repeat: Infinity }}
+                >
+                  {game.icon}
+                </motion.div>
+
+                <CardTitle className="text-xl md:text-2xl text-white mb-3 relative z-10">
+                  {game.title}
+                </CardTitle>
+
+                <div className="flex items-center justify-center gap-2 mb-4 relative z-10 flex-wrap">
+                  <Badge
+                    className={`${game.difficultyColor} text-white text-sm`}
+                  >
+                    {game.difficulty}
+                  </Badge>
+                  <Badge className="bg-white/20 text-white text-sm">
+                    <Trophy className="w-4 h-4 mr-1" />
+                    {game.points} pts
+                  </Badge>
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-4 relative z-10">
+                <p className="text-white text-base md:text-lg leading-relaxed">
+                  {game.description}
+                </p>
+
+                {/* What You'll Learn */}
+                <div className="bg-black/40 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <h4 className="text-cyan-300 font-bold mb-2 flex items-center gap-2">
+                    <Lightbulb className="w-5 h-5" />
+                    What You'll Learn
+                  </h4>
+                  <p className="text-cyan-100 text-sm md:text-base">
+                    {game.kidFriendlyInfo.whatYouLearn}
+                  </p>
+                </div>
+
+                {/* Game Type */}
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-white font-semibold flex items-center gap-2 text-sm md:text-base">
+                      <Gamepad2 className="w-5 h-5" />
+                      {game.gameType}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Coins className="w-5 h-5 text-yellow-400" />
+                      <span className="text-yellow-300 font-bold">
+                        +{game.points}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Vocabulary Preview */}
+                <div className="bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+                  <p className="text-white text-sm">
+                    <BookOpen className="w-4 h-4 inline mr-2" />
+                    Learn{" "}
+                    {game.kidFriendlyInfo.vocabulary.length} new
+                    words while playing!
+                  </p>
+                </div>
+
+                <Button
+                  onClick={() => {
+                    setSelectedGame(game.id);
+                    playSound("click");
+                  }}
+                  className="w-full bg-white/20 hover:bg-white/30 text-white text-base md:text-xl py-4 md:py-6 rounded-2xl border-2 border-white/50 transition-all duration-300 hover:shadow-xl transform hover:scale-105"
+                >
+                  <Play className="w-5 h-5 md:w-6 md:h-6 mr-2" />
+                  Let's Play!
+                  <Rocket className="w-5 h-5 md:w-6 md:h-6 ml-2" />
+                </Button>
+              </CardContent>
+            </Card>
           </motion.div>
         ))}
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <Button
-            onClick={() => {
-              playSound("click");
-              setSelectedGame(null);
-            }}
-            className="flex items-center gap-3 bg-white/25 backdrop-blur-lg hover:bg-white/35 text-white border-4 border-white/40 text-2xl px-8 py-4 rounded-2xl font-bold shadow-xl"
-          >
-            <ChevronLeft className="w-6 h-6" />
-            Back to Games
-          </Button>
+      {/* Fun Learning Tips */}
+      <motion.div
+        className="mt-12 bg-gradient-to-r from-gray-800/50 to-blue-800/50 backdrop-blur-sm rounded-3xl p-6 border-2 border-gray-600/30"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+      >
+        <div className="text-center mb-6">
+          <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+            Gaming Tips for Young Heroes! 🌟
+          </h3>
+          <p className="text-gray-300 text-base md:text-lg">
+            All games teach real space science in super fun
+            ways!
+          </p>
         </div>
-
-        {renderSelectedGame()}
-      </div>
-    </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white/10 rounded-xl p-4 text-center">
+            <Gamepad2 className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+            <p className="text-blue-200 font-semibold">
+              Play & Learn
+            </p>
+            <p className="text-blue-100 text-sm mt-1">
+              Have fun while learning about space!
+            </p>
+          </div>
+          <div className="bg-white/10 rounded-xl p-4 text-center">
+            <Lightbulb className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+            <p className="text-yellow-200 font-semibold">
+              New Words
+            </p>
+            <p className="text-yellow-100 text-sm mt-1">
+              Learn cool space science words!
+            </p>
+          </div>
+          <div className="bg-white/10 rounded-xl p-4 text-center">
+            <Trophy className="w-8 h-8 text-green-400 mx-auto mb-2" />
+            <p className="text-green-200 font-semibold">
+              Earn Rewards
+            </p>
+            <p className="text-green-100 text-sm mt-1">
+              Get points and cosmic coins!
+            </p>
+          </div>
+          <div className="bg-white/10 rounded-xl p-4 text-center">
+            <Heart className="w-8 h-8 text-pink-400 mx-auto mb-2" />
+            <p className="text-pink-200 font-semibold">
+              Have Fun
+            </p>
+            <p className="text-pink-100 text-sm mt-1">
+              Most importantly, enjoy playing!
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
+
+  if (selectedGame) {
+    return renderGamePlayer();
+  }
+
+  return renderGameSelection();
 }
