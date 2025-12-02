@@ -4,7 +4,6 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Progress } from './ui/progress';
 import { Badge } from './ui/badge';
-import SpaceDictionary from './SpaceDictionary';
 import { 
   Brain, 
   Trophy, 
@@ -108,8 +107,6 @@ export default function FunctionalQuizzes({ playerName, onBack }: FunctionalQuiz
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [showDictionary, setShowDictionary] = useState(false);
-  const [dictionaryWord, setDictionaryWord] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [playerStats, setPlayerStats] = useState({
     quizzesCompleted: 0,
@@ -789,13 +786,6 @@ export default function FunctionalQuizzes({ playerName, onBack }: FunctionalQuiz
     playSound('click');
   };
 
-  const openDictionary = (word: string) => {
-    setDictionaryWord(word);
-    setShowDictionary(true);
-    setPlayerStats(prev => ({ ...prev, wordsLearned: prev.wordsLearned + 1 }));
-    playSound('click');
-  };
-
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -979,40 +969,12 @@ export default function FunctionalQuizzes({ playerName, onBack }: FunctionalQuiz
                       </div>
                       <p className="text-cyan-100 text-xl">{currentQ.funFact}</p>
                     </div>
-
-                    {/* Vocabulary */}
-                    {currentQ.vocabulary && (
-                      <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-md rounded-2xl p-6 border-2 border-purple-400/30">
-                        <div className="flex items-center gap-3 mb-4">
-                          <BookOpen className="w-6 h-6 text-purple-300" />
-                          <span className="text-purple-200 font-bold text-xl">Learn New Words!</span>
-                        </div>
-                        <div className="flex flex-wrap gap-3">
-                          {currentQ.vocabulary.map((word, index) => (
-                            <Button
-                              key={index}
-                              onClick={() => openDictionary(word.word)}
-                              className="bg-purple-500/30 hover:bg-purple-500/40 text-purple-100 border-2 border-purple-400/30 text-lg px-4 py-2 rounded-xl"
-                            >
-                              {word.word} 📖
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
             </CardContent>
           </Card>
         </motion.div>
-
-        {/* Dictionary */}
-        <SpaceDictionary
-          isOpen={showDictionary}
-          onClose={() => setShowDictionary(false)}
-          searchWord={dictionaryWord}
-        />
       </motion.div>
     );
   };
@@ -1237,16 +1199,16 @@ export default function FunctionalQuizzes({ playerName, onBack }: FunctionalQuiz
                       <span>Beautiful illustrations</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <BookOpen className="w-5 h-5 text-green-400" />
-                      <span>Interactive dictionary</span>
-                    </div>
-                    <div className="flex items-center gap-3">
                       <Lightbulb className="w-5 h-5 text-yellow-400" />
                       <span>Fun facts & explanations</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Headphones className="w-5 h-5 text-purple-400" />
                       <span>Sound effects</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Trophy className="w-5 h-5 text-amber-400" />
+                      <span>Real-time scoring</span>
                     </div>
                   </div>
                 </div>
@@ -1275,7 +1237,7 @@ export default function FunctionalQuizzes({ playerName, onBack }: FunctionalQuiz
         <div className="text-center mb-8">
           <h3 className="text-3xl font-bold text-white mb-4">🌟 Enhanced Learning Experience! 🌟</h3>
           <p className="text-cyan-200 text-xl">
-            Every quiz features beautiful illustrations, interactive dictionary, and real NASA science!
+            Every quiz features beautiful illustrations, fun facts, and real NASA science!
           </p>
         </div>
       </motion.div>
