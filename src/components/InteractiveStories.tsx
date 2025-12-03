@@ -135,6 +135,7 @@ export default function InteractiveStories({
   const SpaceIllustration = ({ type }: { type: string }) => {
     const getImageSrc = () => {
       switch (type) {
+        // Farmer Story - Each scene has unique image
         case "farmer_gps":
           return "https://images.unsplash.com/photo-1764680206441-01eec1ec79ff?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
         case "satellite_signals":
@@ -143,16 +144,46 @@ export default function InteractiveStories({
           return "https://images.unsplash.com/photo-1764680000207-d61a70a73945?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8NXx8fGVufDB8fHx8fA%3D%3D";
         case "earth_shield":
           return "https://images.unsplash.com/photo-1764679867645-da7b8f424e4d?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8Mnx8fGVufDB8fHx8fA%3D%3D";
+        case "gps_accuracy":
+          return "https://images.unsplash.com/photo-1764775274951-665a989651d8?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
+        case "gps_interference":
+          return "https://images.unsplash.com/photo-1764775178956-0b48110c8323?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
+        case "storm_duration":
+          return "https://images.unsplash.com/photo-1764773167079-7541a6c87599?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
+        case "farmer_solutions":
+          return "https://images.unsplash.com/photo-1764680767668-5f8e67587551?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
+        case "earth_magnetic":
+          return "https://images.unsplash.com/photo-1719671749913-684a8752e16b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlYXJ0aCUyMG1hZ25ldGljJTIwZmllbGR8ZW58MXx8fHwxNzY0NzcxMDk5fDA&ixlib=rb-4.1.0&q=80&w=1080";
+        case "farmer_celebration":
+          return "https://images.unsplash.com/photo-1764681081891-6f20087d29b1?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
+        case "solar_prediction":
+          return "https://images.unsplash.com/vector-1764772675973-d3493f46b5dc?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
+        
+        // Pilot Story - Each scene has unique image
         case "pilot_aurora":
           return "https://images.unsplash.com/photo-1764681575791-d804444301c3?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8Mnx8fGVufDB8fHx8fA%3D%3D";
+        case "aurora_science":
+          return "https://images.unsplash.com/photo-1764774559925-92b1b452ea40?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
+        case "aviation_safety":
+          return "https://images.unsplash.com/photo-1764773392186-5753d7e33e9a?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
+        case "flying_aurora":
+          return "https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YXVyb3JhfGVufDB8fDB8fHww";
         case "communication_issues":
           return "https://images.unsplash.com/photo-1764681944698-3a335c5adda1?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
+        case "navigation_systems":
+          return "https://images.unsplash.com/photo-1764773778838-d03558f5bc11?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
+        case "passenger_safety":
+          return "https://images.unsplash.com/photo-1764773566332-7b91628e61f6?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
+        case "pilot_celebration":
+          return "https://images.unsplash.com/photo-1764774268933-8955ec60290a?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
+        case "aurora_frequency":
+          return "https://images.unsplash.com/photo-1764774112179-3d259b46f9e3?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
+        
+        // Generic
         case "astronaut_space":
           return "https://images.unsplash.com/photo-1454789548928-9efd52dc4031?w=1200&h=800&fit=crop";
         case "power_grid":
           return "https://images.unsplash.com/photo-1509390144105-d6e5c5a90ece?w=1200&h=800&fit=crop";
-        case "solutions":
-          return "https://images.unsplash.com/photo-1764680767668-5f8e67587551?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
         case "celebration":
           return "https://images.unsplash.com/photo-1764681081891-6f20087d29b1?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwcm9maWxlLXBhZ2V8MXx8fGVufDB8fHx8fA%3D%3D";
         default:
@@ -162,6 +193,7 @@ export default function InteractiveStories({
 
     const getCaption = () => {
       switch (type) {
+        // Farmer Story Captions
         case "farmer_gps":
           return "GPS: \"You're in a lake!\" 🌊 - But I'm clearly in my cornfield! 🌽🌽🌽";
         case "satellite_signals":
@@ -170,16 +202,46 @@ export default function InteractiveStories({
           return "Solar storm confuses GPS signals! ⚡☀️";
         case "earth_shield":
           return "Earth's magnetic field protects us like a superhero shield! 🛡️🌍";
+        case "gps_accuracy":
+          return "GPS can pinpoint your location within 5-10 meters! 📏";
+        case "gps_interference":
+          return "Solar storms create ionospheric disturbances! 🔬⚡";
+        case "storm_duration":
+          return "Scientists monitor the Sun 24/7 to predict storms! ⏰🔭";
+        case "farmer_solutions":
+          return "Smart farmers have backup plans for every situation! 🚜🧠";
+        case "earth_magnetic":
+          return "Earth's molten core creates our protective magnetic field! 🌍🛡️";
+        case "farmer_celebration":
+          return "🏆 GPS Mystery Solved! You're a Space Weather Expert! 🌟";
+        case "solar_prediction":
+          return "Advanced satellites help us predict solar storms! 🔮🛰️";
+        
+        // Pilot Story Captions
         case "pilot_aurora":
           return "Beautiful aurora lights dancing in the night sky! 🌈✨";
+        case "aurora_science":
+          return "Solar particles create stunning light shows in the atmosphere! 🔬✨";
+        case "aviation_safety":
+          return "Pilots monitor space weather for safe flights! ✈️📊";
+        case "flying_aurora":
+          return "Flying through Aurora Country - Northern Europe and Alaska! ✈️🌈";
         case "communication_issues":
           return "Aurora interferes with radio communications! 📻⚡";
+        case "navigation_systems":
+          return "Multiple backup navigation systems ensure safety! 🧭✅";
+        case "passenger_safety":
+          return "Passenger safety is always the top priority! 👥❤️";
+        case "pilot_celebration":
+          return "🏆 Aurora Flight Complete! You'd make an excellent pilot! 🌟";
+        case "aurora_frequency":
+          return "Auroras follow the Sun's 11-year activity cycle! 📅☀️";
+        
+        // Generic
         case "astronaut_space":
           return "Space is an amazing but dangerous place! 🚀👨‍🚀";
         case "power_grid":
           return "Solar storms can affect power grids! ⚡🔌";
-        case "solutions":
-          return "Smart solutions keep us safe! 🧠💡";
         case "celebration":
           return "🏆 Mission Complete! You're a Space Weather Expert! 🌟";
         default:
@@ -390,7 +452,7 @@ export default function InteractiveStories({
             "bg-gradient-to-b from-cyan-400 via-blue-500 to-indigo-600",
           character: "📏",
           text: "Great question! On a normal day, GPS is incredibly accurate - usually within 5 to 10 meters (about 15 to 30 feet)! That's accurate enough to know exactly which room you're in! But during solar storms, that accuracy can drop to 50 meters or more, which is why it might think you're in a lake when you're really in your field!",
-          imageType: "satellite_signals",
+          imageType: "gps_accuracy",
           choices: [
             {
               text: "How can farmers deal with this problem? 🚜",
@@ -426,7 +488,7 @@ export default function InteractiveStories({
             "bg-gradient-to-b from-red-400 via-orange-500 to-yellow-600",
           character: "🔬",
           text: "Here's the science! GPS signals are radio waves traveling from satellites to your device. During a solar storm, Earth's atmosphere gets charged with extra particles, creating what scientists call 'ionospheric disturbances.' These charged particles bend and slow down the GPS signals, just like how a straw looks bent when you put it in water! This bending confuses your GPS receiver about where the signal came from.",
-          imageType: "solar_storm",
+          imageType: "gps_interference",
           choices: [
             {
               text: "How can farmers deal with this problem? 🚜",
@@ -465,7 +527,7 @@ export default function InteractiveStories({
             "bg-gradient-to-b from-orange-400 via-pink-500 to-purple-600",
           character: "⏰",
           text: "Good news - most solar storms only last a few hours to a couple of days! Scientists monitor the Sun 24/7 using special satellites and can often predict when storms will happen. Once the storm passes, your GPS will return to normal accuracy. Think of it like a weather storm - it comes, causes some disruption, and then clears up!",
-          imageType: "solar_storm",
+          imageType: "storm_duration",
           choices: [
             {
               text: "How can farmers deal with this problem? 🚜",
@@ -503,7 +565,7 @@ export default function InteractiveStories({
             "bg-gradient-to-b from-green-400 via-yellow-500 to-orange-500",
           character: "🧠",
           text: `You're thinking like a real problem-solver, ${playerName}! Smart farmers like me always have backup plans. During solar storms, I can: use different GPS systems that work better during storms (like European Galileo or Russian GLONASS), wait for the storm to calm down before planting, use traditional farming methods that don't need GPS, or rely on my years of experience knowing my land! The most important thing is being flexible and having multiple solutions!`,
-          imageType: "solutions",
+          imageType: "farmer_solutions",
           choices: [
             {
               text: "This is amazing! What did we learn? 🌟",
@@ -542,7 +604,7 @@ export default function InteractiveStories({
             "bg-gradient-to-b from-purple-500 via-blue-600 to-cyan-600",
           character: "🌍",
           text: "Earth's magnetic field is created by swirling molten iron in our planet's core - like a giant magnet inside Earth! This field extends thousands of miles into space, creating a protective bubble called the magnetosphere. It shields us from dangerous solar radiation and cosmic rays. Without it, solar wind would strip away our atmosphere, and life on Earth wouldn't exist! Birds and sea animals use this field to navigate, and it's what makes compass needles point north!",
-          imageType: "earth_shield",
+          imageType: "earth_magnetic",
           choices: [
             {
               text: "How can farmers deal with this problem? 🚜",
@@ -585,7 +647,7 @@ export default function InteractiveStories({
             "bg-gradient-to-b from-gold via-yellow-400 to-orange-500",
           character: "🏆",
           text: `Outstanding detective work, ${playerName}! You've learned that GPS uses satellite signals from space, solar storms can interfere with these signals by affecting Earth's protective magnetic field, and smart farmers always have backup plans! You're now officially a space weather expert! Sarah's GPS will work normally again once the solar storm calms down, which usually takes a few hours to a few days.`,
-          imageType: "celebration",
+          imageType: "farmer_celebration",
           choices: [
             {
               text: "I want to learn more! Show me another story! 📚",
@@ -618,7 +680,7 @@ export default function InteractiveStories({
             "bg-gradient-to-b from-indigo-500 via-purple-600 to-pink-600",
           character: "🔮",
           text: "Yes! Scientists are getting better at predicting solar storms! They use special satellites to watch the Sun 24/7, looking for solar flares and coronal mass ejections (big bursts of solar material). When they detect a storm heading toward Earth, they can warn us 1-3 days in advance! This gives farmers, pilots, and power grid operators time to prepare. It's like having a weather forecast, but for space weather!",
-          imageType: "solar_storm",
+          imageType: "solar_prediction",
           choices: [
             {
               text: "That's incredible! What did we learn? 🌟",
@@ -709,7 +771,7 @@ export default function InteractiveStories({
             "bg-gradient-to-b from-green-400 via-purple-500 to-pink-600",
           character: "🔬",
           text: "Great question! Auroras are like a cosmic light show created by the Sun and Earth working together! The Sun constantly sends out tiny invisible particles called solar wind. When these particles reach Earth, our planet's magnetic field catches them and guides them toward the North and South Poles. As these particles hit gases in our atmosphere, they light up like a neon sign - oxygen creates green light, and nitrogen creates purple and red!",
-          imageType: "pilot_aurora",
+          imageType: "aurora_science",
           choices: [
             {
               text: "That's beautiful! What's the impact on flying? ✈️",
@@ -755,7 +817,7 @@ export default function InteractiveStories({
             "bg-gradient-to-b from-cyan-400 via-blue-500 to-indigo-600",
           character: "✈️",
           text: "Excellent question about safety! Flying during auroras is generally safe, but we pilots need to be extra careful. The same solar activity that creates beautiful auroras can also cause increased radiation levels at high altitudes, interfere with our communication and navigation systems, and create turbulence. That's why we monitor space weather forecasts just like we monitor regular weather! We might change our flight path or altitude to minimize exposure.",
-          imageType: "pilot_aurora",
+          imageType: "aviation_safety",
           choices: [
             {
               text: "How do auroras affect communications? 📻",
@@ -792,7 +854,7 @@ export default function InteractiveStories({
             "bg-gradient-to-b from-purple-400 via-pink-500 to-orange-600",
           character: "✈️",
           text: "Flying when auroras are visible is actually quite common on routes to Europe, Alaska, or Scandinavia! For us pilots, seeing auroras means we need to be more alert. We monitor our instruments more carefully, keep in closer contact with air traffic control, and check our radiation exposure levels. But for passengers like you, it's a once-in-a-lifetime view! Many people fly specifically to see auroras from above the clouds!",
-          imageType: "pilot_aurora",
+          imageType: "flying_aurora",
           choices: [
             {
               text: "Can auroras affect our airplane systems? ⚡",
@@ -877,7 +939,7 @@ export default function InteractiveStories({
             "bg-gradient-to-b from-cyan-400 via-blue-500 to-purple-600",
           character: "🧭",
           text: `Excellent question, ${playerName}! Modern airplanes are like flying computers with many navigation systems. We have GPS (when it's working properly), inertial navigation systems that remember where we've been, radio beacons on the ground, and we can even navigate by the stars like sailors did centuries ago! Plus, air traffic control has radar that can track us even when our radios are fuzzy. Safety always comes first!`,
-          imageType: "solutions",
+          imageType: "navigation_systems",
           choices: [
             {
               text: "This is incredible! What did I learn? 🌟",
@@ -923,7 +985,7 @@ export default function InteractiveStories({
             "bg-gradient-to-b from-blue-400 via-indigo-500 to-purple-600",
           character: "👥",
           text: "Great question! Most passengers don't realize when space weather is affecting our systems because we handle it all behind the scenes! We're trained to deal with these challenges smoothly. If we need to change altitude or route due to space weather, we make these adjustments carefully. The extra radiation during strong auroras is monitored, but flight crews are exposed to more radiation than passengers, and we stay well within safe limits. Your safety is always our top priority!",
-          imageType: "pilot_aurora",
+          imageType: "passenger_safety",
           choices: [
             {
               text: "How do you navigate with backup systems? 🧭",
@@ -968,7 +1030,7 @@ export default function InteractiveStories({
             "bg-gradient-to-b from-gold via-yellow-400 to-orange-500",
           character: "🏆",
           text: `Outstanding work, ${playerName}! You've learned that auroras are created when solar particles interact with Earth's magnetic field and atmosphere, they can interfere with radio communications and navigation systems, pilots have multiple backup systems for safety, and aviation safety always comes first during space weather events. You'd make an excellent pilot or atmospheric scientist! Thanks for flying with us tonight - I hope you enjoyed the aurora show!`,
-          imageType: "celebration",
+          imageType: "pilot_celebration",
           choices: [
             {
               text: "I want to learn more! Show me another story! 📚",
@@ -1001,7 +1063,7 @@ export default function InteractiveStories({
             "bg-gradient-to-b from-purple-500 via-indigo-600 to-blue-600",
           character: "📅",
           text: "Auroras follow the Sun's activity cycle! The Sun has an 11-year cycle of activity. During solar maximum (the most active period), we see auroras several times a week on polar routes! During solar minimum, they're less common. Pilots on routes crossing the Arctic Circle see auroras frequently - Alaska Airlines and Scandinavian Airlines pilots might see them once a week or more during active periods! It's one of the perks of the job!",
-          imageType: "pilot_aurora",
+          imageType: "aurora_frequency",
           choices: [
             {
               text: "How do you prepare for space weather? 🧭",
