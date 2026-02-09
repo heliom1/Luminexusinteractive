@@ -49,8 +49,10 @@ import {
   TrendingUp,
   BarChart,
   PieChart,
-  Settings
+  Settings,
+  Coins
 } from 'lucide-react';
+import { useGameProgress } from '../contexts/GameProgressContext';
 
 interface FunctionalQuizzesProps {
   playerName: string;
@@ -94,6 +96,7 @@ interface QuizState {
 }
 
 export default function FunctionalQuizzes({ playerName, onBack }: FunctionalQuizzesProps) {
+  const { progress, completeQuiz, addCoins, addXP } = useGameProgress();
   const [selectedQuiz, setSelectedQuiz] = useState<string | null>(null);
   const [quizState, setQuizState] = useState<QuizState>({
     currentQuestion: 0,
@@ -108,6 +111,8 @@ export default function FunctionalQuizzes({ playerName, onBack }: FunctionalQuiz
   const [showExplanation, setShowExplanation] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showRewardNotification, setShowRewardNotification] = useState(false);
+  const [rewardData, setRewardData] = useState({ coins: 0, xp: 0 });
   const [playerStats, setPlayerStats] = useState({
     quizzesCompleted: 0,
     totalScore: 0,
@@ -765,6 +770,21 @@ export default function FunctionalQuizzes({ playerName, onBack }: FunctionalQuiz
           perfectScores: prev.perfectScores + (percentage === 100 ? 1 : 0),
           wordsLearned: prev.wordsLearned
         }));
+        
+        // Award coins and XP to the player
+        if (selectedQuiz && !progress.quizzesCompleted.includes(selectedQuiz)) {
+          completeQuiz(selectedQuiz, percentage);
+          
+          // Calculate rewards
+          const isPerfect = percentage === 100;
+          const coins = isPerfect ? 75 : Math.round(percentage * 0.5);
+          const xp = isPerfect ? 150 : Math.round(percentage * 1.0);
+          
+          // Show reward notification
+          setRewardData({ coins, xp });
+          setShowRewardNotification(true);
+          setTimeout(() => setShowRewardNotification(false), 3000);
+        }
       }
     }, 4000);
   };
@@ -1245,7 +1265,44 @@ export default function FunctionalQuizzes({ playerName, onBack }: FunctionalQuiz
   );
 
   if (showResults) {
-    return renderResults();
+    return (
+      <>
+        {renderResults()}
+        
+        {/* Reward Notification */}
+        <AnimatePresence>
+          {showRewardNotification && (
+            <motion.div
+              className="fixed top-20 right-4 z-50 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-6 shadow-2xl border-4 border-white"
+              initial={{ opacity: 0, x: 100, scale: 0.8 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 100, scale: 0.8 }}
+            >
+              <div className="text-center">
+                <motion.div
+                  animate={{ rotate: [0, 10, -10, 10, 0], scale: [1, 1.2, 1] }}
+                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1 }}
+                  className="text-5xl mb-2"
+                >
+                  🎉
+                </motion.div>
+                <h3 className="text-white text-2xl mb-2">Rewards Earned!</h3>
+                <div className="flex items-center justify-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Coins className="w-6 h-6 text-white" />
+                    <span className="text-white text-xl">+{rewardData.coins}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-6 h-6 text-white" />
+                    <span className="text-white text-xl">+{rewardData.xp} XP</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </>
+    );
   }
 
   if (selectedQuiz) {

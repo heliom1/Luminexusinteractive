@@ -24,12 +24,12 @@ import {
   Shield,
   Flame
 } from 'lucide-react';
+import { useGameProgress } from '../contexts/GameProgressContext';
 
 interface CosmicCoinShopProps {
   playerName: string;
   isVisible: boolean;
   onClose: () => void;
-  cosmicCoins?: number;
 }
 
 interface ShopItem {
@@ -46,12 +46,10 @@ interface ShopItem {
 export default function CosmicCoinShop({
   playerName,
   isVisible,
-  onClose,
-  cosmicCoins = 187
+  onClose
 }: CosmicCoinShopProps) {
+  const { progress, purchaseItem } = useGameProgress();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [ownedItems, setOwnedItems] = useState<string[]>(['item1', 'item5']);
-  const [coins, setCoins] = useState(cosmicCoins);
   const [showPurchaseAnimation, setShowPurchaseAnimation] = useState(false);
 
   const shopItems: ShopItem[] = [
@@ -156,13 +154,17 @@ export default function CosmicCoinShop({
   };
 
   const handlePurchase = (item: ShopItem) => {
-    if (coins >= item.cost && !ownedItems.includes(item.id)) {
-      setCoins(coins - item.cost);
-      setOwnedItems([...ownedItems, item.id]);
-      setShowPurchaseAnimation(true);
-      setTimeout(() => setShowPurchaseAnimation(false), 2000);
-      playSound('success');
-    } else if (ownedItems.includes(item.id)) {
+    const isOwned = progress.ownedItems.includes(item.id);
+    if (progress.coins >= item.cost && !isOwned) {
+      const success = purchaseItem(item.id, item.cost);
+      if (success) {
+        setShowPurchaseAnimation(true);
+        setTimeout(() => setShowPurchaseAnimation(false), 2000);
+        playSound('success');
+      } else {
+        playSound('error');
+      }
+    } else if (isOwned) {
       playSound('error');
     } else {
       playSound('error');
@@ -246,7 +248,7 @@ export default function CosmicCoinShop({
             >
               <Coins className="w-6 h-6 md:w-10 md:h-10 text-white" />
               <span className="text-white text-2xl md:text-4xl">
-                {coins} Cosmic Coins
+                {progress.coins} Cosmic Coins
               </span>
             </motion.div>
           </div>
@@ -287,8 +289,8 @@ export default function CosmicCoinShop({
           <div className="p-3 md:p-6 overflow-y-auto max-h-[60vh]">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {filteredItems.map((item, index) => {
-                const isOwned = ownedItems.includes(item.id);
-                const canAfford = coins >= item.cost;
+                const isOwned = progress.ownedItems.includes(item.id);
+                const canAfford = progress.coins >= item.cost;
 
                 return (
                   <motion.div

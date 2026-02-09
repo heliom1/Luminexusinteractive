@@ -34,6 +34,7 @@ import {
   Globe,
   Heart,
 } from "lucide-react";
+import { useGameProgress, getLevelProgress, getXPForNextLevel } from "../contexts/GameProgressContext";
 
 interface ProfilePageProps {
   playerName: string;
@@ -44,28 +45,30 @@ export default function ProfilePage({
   playerName,
   onBack,
 }: ProfilePageProps) {
+  const { progress, resetProgress } = useGameProgress();
   const [activeTab, setActiveTab] = useState<
     "overview" | "achievements" | "stats" | "settings"
   >("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(playerName);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
-  // Mock player data - in a real app this would come from a database
+  // Use real data from GameProgress context
   const playerData = {
     name: playerName,
-    level: 9,
-    title: "Space Weather Explorer",
-    cosmicCoins: 1247,
-    totalPoints: 3850,
-    gamesPlayed: 23,
-    gamesWon: 17,
-    quizzesTaken: 12,
-    quizzesCompleted: 8,
-    storiesRead: 5,
-    activitiesCompleted: 7,
-    joinDate: "2024-01-15",
-    lastActive: "Today",
-    winRate: Math.round((17 / 23) * 100),
+    level: progress.level,
+    title: progress.level >= 10 ? "Space Weather Master" : progress.level >= 5 ? "Cosmic Explorer" : "Space Cadet",
+    cosmicCoins: progress.coins,
+    totalPoints: progress.totalPoints,
+    gamesPlayed: progress.gamesPlayed,
+    gamesWon: progress.gamesWon,
+    quizzesTaken: progress.quizzesCompleted.length,
+    quizzesCompleted: progress.quizzesCompleted.length,
+    storiesRead: progress.storiesCompleted.length,
+    activitiesCompleted: progress.activitiesCompleted.length,
+    joinDate: progress.joinDate,
+    lastActive: progress.lastActive,
+    winRate: progress.gamesPlayed > 0 ? Math.round((progress.gamesWon / progress.gamesPlayed) * 100) : 0,
   };
 
   const achievements = [
@@ -176,9 +179,8 @@ export default function ProfilePage({
     },
   ];
 
-  const levelProgress =
-    ((playerData.totalPoints % 500) / 500) * 100;
-  const nextLevelPoints = 500 - (playerData.totalPoints % 500);
+  const levelProgress = getLevelProgress(progress.xp, progress.level);
+  const nextLevelPoints = getXPForNextLevel(progress.xp, progress.level);
 
   const tabs = [
     { id: "overview", name: "Overview", icon: User },
@@ -831,7 +833,10 @@ export default function ProfilePage({
                       <Button className="bg-blue-500 hover:bg-blue-600 text-white text-lg px-8 py-3 rounded-xl font-bold">
                         Export Data
                       </Button>
-                      <Button className="bg-yellow-500 hover:bg-yellow-600 text-white text-lg px-8 py-3 rounded-xl font-bold">
+                      <Button 
+                        onClick={() => setShowResetConfirm(true)}
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white text-lg px-8 py-3 rounded-xl font-bold"
+                      >
                         Reset Progress
                       </Button>
                       <Button className="bg-red-500 hover:bg-red-600 text-white text-lg px-8 py-3 rounded-xl font-bold">
@@ -845,6 +850,75 @@ export default function ProfilePage({
           </motion.div>
         </AnimatePresence>
       </div>
+      
+      {/* Reset Progress Confirmation Dialog */}
+      <AnimatePresence>
+        {showResetConfirm && (
+          <motion.div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowResetConfirm(false)}
+          >
+            <motion.div
+              className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border-4 border-yellow-400"
+              initial={{ scale: 0.8, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 50 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center mb-6">
+                <motion.div
+                  animate={{ rotate: [0, -10, 10, -10, 0] }}
+                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1 }}
+                  className="text-7xl mb-4"
+                >
+                  ⚠️
+                </motion.div>
+                <h3 className="text-gray-800 text-3xl mb-4">Reset All Progress?</h3>
+                <p className="text-gray-600 text-xl">
+                  This will reset your level, coins, XP, and all progress back to the beginning. This action cannot be undone!
+                </p>
+              </div>
+              
+              <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-4 mb-6">
+                <p className="text-red-600 text-lg">
+                  <strong>You will lose:</strong>
+                </p>
+                <ul className="text-red-600 text-lg mt-2 space-y-1">
+                  <li>• {progress.coins} Cosmic Coins</li>
+                  <li>• Level {progress.level} (all {progress.xp} XP)</li>
+                  <li>• {progress.storiesCompleted.length} completed stories</li>
+                  <li>• {progress.gamesWon} game victories</li>
+                  <li>• {progress.quizzesCompleted.length} quiz completions</li>
+                  <li>• {progress.ownedItems.length} shop items</li>
+                </ul>
+              </div>
+              
+              <div className="flex gap-4">
+                <Button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="flex-1 bg-gray-500 hover:bg-gray-600 text-white text-xl py-4 rounded-2xl font-bold"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    resetProgress();
+                    setShowResetConfirm(false);
+                    // Optionally reload the page or show a success message
+                    alert("Progress has been reset! Starting fresh! 🚀");
+                  }}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white text-xl py-4 rounded-2xl font-bold"
+                >
+                  Reset All
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -58,6 +58,7 @@ import {
   Wind,
   Download,
 } from "lucide-react";
+import { useGameProgress } from "../contexts/GameProgressContext";
 
 interface CosmicGamesProps {
   playerName: string;
@@ -68,20 +69,16 @@ export default function CosmicGames({
   playerName,
   onBack,
 }: CosmicGamesProps) {
+  const { progress, recordGamePlayed } = useGameProgress();
   const [selectedGame, setSelectedGame] = useState<
     string | null
   >(null);
+  const [showRewardNotification, setShowRewardNotification] = useState(false);
+  const [rewardData, setRewardData] = useState({ coins: 0, xp: 0, won: false });
 
   const playSound = (type: string) => {
     console.log(`🔊 Sound: ${type}`);
   };
-
-  const [playerStats, setPlayerStats] = useState({
-    cosmicCoins: 187,
-    gamesWon: 12,
-    quizzesPassed: 8,
-    level: 15,
-  });
 
   const interactiveGames = [
     {
@@ -690,6 +687,19 @@ export default function CosmicGames({
     }, [gameState]);
 
     if (gameState === "gameOver") {
+      // Award rewards when game ends
+      useEffect(() => {
+        const won = score >= 50; // Consider it a win if score is 50 or higher
+        recordGamePlayed(won);
+        
+        const coins = won ? 30 : 10;
+        const xp = won ? 75 : 25;
+        
+        setRewardData({ coins, xp, won });
+        setShowRewardNotification(true);
+        setTimeout(() => setShowRewardNotification(false), 3000);
+      }, []); // Run once when gameOver state is reached
+      
       return (
         <div className="text-center space-y-8">
           <motion.div
@@ -706,6 +716,21 @@ export default function CosmicGames({
             <p className="text-white text-3xl mb-8">
               Fantastic Final Score!
             </p>
+            
+            {/* Show rewards */}
+            <div className="bg-gradient-to-r from-yellow-400/20 to-orange-500/20 backdrop-blur-md rounded-2xl p-6 border-2 border-yellow-400/50 mb-6 max-w-md mx-auto">
+              <h3 className="text-white text-2xl mb-4">Rewards Earned!</h3>
+              <div className="flex items-center justify-center gap-6">
+                <div className="flex items-center gap-2">
+                  <Coins className="w-8 h-8 text-yellow-400" />
+                  <span className="text-white text-3xl">+{rewardData.coins}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-8 h-8 text-cyan-400" />
+                  <span className="text-white text-3xl">+{rewardData.xp} XP</span>
+                </div>
+              </div>
+            </div>
 
             <div className="flex justify-center gap-6">
               <Button

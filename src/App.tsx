@@ -3,6 +3,7 @@ import LoginPage from './components/LoginPage';
 import LoadingAnimation from './components/LoadingAnimation';
 import OnboardingScreen from './components/OnboardingScreen';
 import MainPage from './components/MainPage';
+import { GameProgressProvider } from './contexts/GameProgressContext';
 
 interface UserProfile {
   name: string;
@@ -35,11 +36,13 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
-      {currentScreen === 'login' && <LoginPage onLogin={handleLogin} />}
-      {currentScreen === 'loading' && <LoadingAnimation onComplete={handleAnimationComplete} />}
-      {currentScreen === 'onboarding' && <OnboardingScreen playerName={playerName} onComplete={handleOnboardingComplete} />}
-      {currentScreen === 'main' && <MainPage playerName={playerName} userProfile={userProfile} />}
-    </div>
+    <GameProgressProvider>
+      <div className="min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+        {currentScreen === 'login' && <LoginPage onLogin={handleLogin} />}
+        {currentScreen === 'loading' && <LoadingAnimation onComplete={handleAnimationComplete} />}
+        {currentScreen === 'onboarding' && <OnboardingScreen playerName={playerName} onComplete={handleOnboardingComplete} />}
+        {currentScreen === 'main' && <MainPage playerName={playerName} userProfile={userProfile} />}
+      </div>
+    </GameProgressProvider>
   );
 }

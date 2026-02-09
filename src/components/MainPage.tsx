@@ -27,6 +27,7 @@ import {
   Video,
   MapPin,
   Coins,
+  Crown,
 } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import InteractiveStories from "./InteractiveStories";
@@ -37,6 +38,7 @@ import TransitionCutscene from "./TransitionCutscene";
 import HelpSystem from "./HelpSystem";
 import VideoLessons from "./VideoLessonsNew";
 import CosmicCoinShop from "./CosmicCoinShop";
+import { useGameProgress } from "../contexts/GameProgressContext";
 
 interface MainPageProps {
   playerName: string;
@@ -47,6 +49,7 @@ export default function MainPage({
   playerName,
   userProfile,
 }: MainPageProps) {
+  const { progress } = useGameProgress();
   const [selectedSection, setSelectedSection] = useState<
     | "stories"
     | "games"
@@ -65,7 +68,6 @@ export default function MainPage({
     `Welcome, ${playerName}! 🌟 I'm Veyra, your space weather guide! Ready to explore the cosmos together?`,
   );
   const [showCoinShop, setShowCoinShop] = useState(false);
-  const [cosmicCoins, setCosmicCoins] = useState(187);
 
   // Welcome message timeout
   useEffect(() => {
@@ -580,9 +582,45 @@ export default function MainPage({
               <div className="flex items-center gap-2 md:gap-3">
                 <Award className="w-5 h-5 md:w-8 md:h-8 text-yellow-600" />
                 <span className="text-yellow-800 text-sm md:text-xl whitespace-nowrap">
-                  Space Explorer! ⭐
+                  Level {progress.level} ⭐
                 </span>
               </div>
+            </motion.div>
+          </div>
+
+          {/* Progress Stats Row - Mobile Visible */}
+          <div className="flex gap-2 mb-4 flex-wrap">
+            {/* Coins Display */}
+            <motion.div
+              className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl px-3 py-2 md:px-4 md:py-2 shadow-lg border-2 border-yellow-300"
+              whileHover={{ scale: 1.05 }}
+            >
+              <Coins className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              <span className="text-white text-sm md:text-lg">
+                {progress.coins}
+              </span>
+            </motion.div>
+
+            {/* Level Display - Show on mobile */}
+            <motion.div
+              className="lg:hidden flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl px-3 py-2 md:px-4 md:py-2 shadow-lg border-2 border-purple-300"
+              whileHover={{ scale: 1.05 }}
+            >
+              <Crown className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              <span className="text-white text-sm md:text-lg">
+                Level {progress.level}
+              </span>
+            </motion.div>
+
+            {/* XP Display */}
+            <motion.div
+              className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl px-3 py-2 md:px-4 md:py-2 shadow-lg border-2 border-cyan-300"
+              whileHover={{ scale: 1.05 }}
+            >
+              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              <span className="text-white text-sm md:text-lg">
+                {progress.xp} XP
+              </span>
             </motion.div>
           </div>
 
@@ -663,7 +701,6 @@ export default function MainPage({
         playerName={playerName}
         isVisible={showCoinShop}
         onClose={() => setShowCoinShop(false)}
-        cosmicCoins={cosmicCoins}
       />
     </>
   );
