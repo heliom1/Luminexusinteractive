@@ -16,6 +16,9 @@ export interface GameProgress {
   
   // Shop Items
   ownedItems: string[];
+  activeTheme: string;
+  activeAvatar: string;
+  activeBoosts: string[];
   
   // Achievements
   unlockedAchievements: string[];
@@ -35,6 +38,9 @@ interface GameProgressContextType {
   recordGamePlayed: (won: boolean) => void;
   completeQuiz: (quizId: string, score: number) => void;
   purchaseItem: (itemId: string, cost: number) => boolean;
+  setActiveTheme: (themeId: string) => void;
+  setActiveAvatar: (avatarId: string) => void;
+  activateBoost: (boostId: string) => void;
   unlockAchievement: (achievementId: string) => void;
   completeActivity: (activityId: string) => void;
   resetProgress: () => void;
@@ -53,6 +59,9 @@ const INITIAL_PROGRESS: GameProgress = {
   quizScores: {},
   activitiesCompleted: [],
   ownedItems: [],
+  activeTheme: 'default',
+  activeAvatar: 'default',
+  activeBoosts: [],
   unlockedAchievements: [],
   totalPoints: 0,
   joinDate: new Date().toISOString().split('T')[0],

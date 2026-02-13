@@ -80,6 +80,14 @@ export default function CosmicGames({
     console.log(`🔊 Sound: ${type}`);
   };
 
+  // Player stats from context
+  const playerStats = {
+    cosmicCoins: progress.coins,
+    gamesWon: progress.gamesWon,
+    quizzesPassed: progress.quizzesCompleted.length,
+    level: progress.level,
+  };
+
   const interactiveGames = [
     {
       id: "solar-flare-catcher",
@@ -391,6 +399,23 @@ export default function CosmicGames({
     });
     const particlesRef = useRef<any[]>([]);
     const powerUpsRef = useRef<any[]>([]);
+    const [hasRecordedGame, setHasRecordedGame] = useState(false);
+
+    // Award rewards when game ends
+    useEffect(() => {
+      if (gameState === "gameOver" && !hasRecordedGame) {
+        const won = score >= 500; // Consider it a win if score is 500 or higher
+        recordGamePlayed(won);
+        setHasRecordedGame(true);
+        
+        const coins = won ? 30 : 10;
+        const xp = won ? 75 : 25;
+        
+        setRewardData({ coins, xp, won });
+        setShowRewardNotification(true);
+        setTimeout(() => setShowRewardNotification(false), 3000);
+      }
+    }, [gameState, hasRecordedGame, score]);
 
     useEffect(() => {
       if (gameState !== "playing") return;
@@ -687,19 +712,6 @@ export default function CosmicGames({
     }, [gameState]);
 
     if (gameState === "gameOver") {
-      // Award rewards when game ends
-      useEffect(() => {
-        const won = score >= 50; // Consider it a win if score is 50 or higher
-        recordGamePlayed(won);
-        
-        const coins = won ? 30 : 10;
-        const xp = won ? 75 : 25;
-        
-        setRewardData({ coins, xp, won });
-        setShowRewardNotification(true);
-        setTimeout(() => setShowRewardNotification(false), 3000);
-      }, []); // Run once when gameOver state is reached
-      
       return (
         <div className="text-center space-y-8">
           <motion.div
@@ -739,6 +751,7 @@ export default function CosmicGames({
                   setScore(0);
                   setLives(5);
                   setTimeLeft(90);
+                  setHasRecordedGame(false);
                   particlesRef.current = [];
                   powerUpsRef.current = [];
                   playSound("click");
@@ -823,6 +836,7 @@ export default function CosmicGames({
       "paint" | "fireworks"
     >("paint");
     const particlesRef = useRef<any[]>([]);
+    const [hasRecordedCompletion, setHasRecordedCompletion] = useState(false);
 
     const colors = [
       {
@@ -1037,6 +1051,15 @@ export default function CosmicGames({
       link.href = canvas.toDataURL();
       link.click();
       playSound("save");
+
+      // Award coins and XP for creating art
+      if (!hasRecordedCompletion) {
+        recordGamePlayed(true);
+        setHasRecordedCompletion(true);
+        setRewardData({ coins: 30, xp: 75, won: true });
+        setShowRewardNotification(true);
+        setTimeout(() => setShowRewardNotification(false), 3000);
+      }
     };
 
     return (
@@ -1238,6 +1261,23 @@ export default function CosmicGames({
     const keysPressed = useRef<Set<string>>(new Set());
     const obstaclesRef = useRef<any[]>([]);
     const collectiblesRef = useRef<any[]>([]);
+    const [hasRecordedGame, setHasRecordedGame] = useState(false);
+
+    // Award rewards when game ends
+    useEffect(() => {
+      if (gameState === "gameOver" && !hasRecordedGame) {
+        const won = score >= 1000; // Consider it a win if score is 1000 or higher
+        recordGamePlayed(won);
+        setHasRecordedGame(true);
+        
+        const coins = won ? 30 : 10;
+        const xp = won ? 75 : 25;
+        
+        setRewardData({ coins, xp, won });
+        setShowRewardNotification(true);
+        setTimeout(() => setShowRewardNotification(false), 3000);
+      }
+    }, [gameState, hasRecordedGame, score]);
 
     // Key handling
     useEffect(() => {
@@ -1597,6 +1637,7 @@ export default function CosmicGames({
                   setFuel(100);
                   setPlayerPos({ x: 400, y: 500 });
                   setVelocity({ x: 0, y: 0 });
+                  setHasRecordedGame(false);
                   obstaclesRef.current = [];
                   collectiblesRef.current = [];
                 }}
@@ -1685,6 +1726,24 @@ export default function CosmicGames({
       y: 300,
     });
     const threatsRef = useRef<any[]>([]);
+    const [hasRecordedGame, setHasRecordedGame] = useState(false);
+
+    // Award rewards when game ends
+    useEffect(() => {
+      if (gameState === "gameOver" && !hasRecordedGame) {
+        const won = score >= 500; // Consider it a win if score is 500 or higher
+        recordGamePlayed(won);
+        setHasRecordedGame(true);
+        
+        const coins = won ? 30 : 10;
+        const xp = won ? 75 : 25;
+        
+        setRewardData({ coins, xp, won });
+        setShowRewardNotification(true);
+        setTimeout(() => setShowRewardNotification(false), 3000);
+      }
+    }, [gameState, hasRecordedGame, score]);
+
     const satellitesRef = useRef<any[]>([
       { id: 1, x: 150, y: 150, health: 100, protected: false },
       { id: 2, x: 650, y: 150, health: 100, protected: false },
@@ -2053,6 +2112,7 @@ export default function CosmicGames({
                   setScore(0);
                   setShieldEnergy(100);
                   setSatellitesLeft(5);
+                  setHasRecordedGame(false);
                   threatsRef.current = [];
                   satellitesRef.current = [
                     {
@@ -2181,6 +2241,29 @@ export default function CosmicGames({
   if (!selectedGame) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6 relative overflow-hidden">
+        {/* Reward Notification */}
+        <AnimatePresence>
+          {showRewardNotification && (
+            <motion.div
+              initial={{ opacity: 0, y: -100, scale: 0.5 }}
+              animate={{ opacity: 1, y: 20, scale: 1 }}
+              exit={{ opacity: 0, y: -100, scale: 0.5 }}
+              className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-8 py-4 rounded-2xl shadow-2xl border-4 border-white"
+            >
+              <div className="flex items-center gap-4">
+                <div className="text-4xl">{rewardData.won ? "🎉" : "💪"}</div>
+                <div>
+                  <div className="font-bold text-xl">{rewardData.won ? "Victory!" : "Good Try!"}</div>
+                  <div className="flex gap-4 text-lg">
+                    <span>+{rewardData.coins} 🪙</span>
+                    <span>+{rewardData.xp} ✨ XP</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Enhanced background effects */}
         <div className="absolute inset-0 overflow-hidden">
           {[...Array(20)].map((_, i) => (
@@ -2241,6 +2324,29 @@ export default function CosmicGames({
   // Render selected game
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6 relative overflow-hidden">
+      {/* Reward Notification */}
+      <AnimatePresence>
+        {showRewardNotification && (
+          <motion.div
+            initial={{ opacity: 0, y: -100, scale: 0.5 }}
+            animate={{ opacity: 1, y: 20, scale: 1 }}
+            exit={{ opacity: 0, y: -100, scale: 0.5 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-8 py-4 rounded-2xl shadow-2xl border-4 border-white"
+          >
+            <div className="flex items-center gap-4">
+              <div className="text-4xl">{rewardData.won ? "🎉" : "💪"}</div>
+              <div>
+                <div className="font-bold text-xl">{rewardData.won ? "Victory!" : "Good Try!"}</div>
+                <div className="flex gap-4 text-lg">
+                  <span>+{rewardData.coins} 🪙</span>
+                  <span>+{rewardData.xp} ✨ XP</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Background effects */}
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(15)].map((_, i) => (

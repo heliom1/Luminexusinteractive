@@ -255,31 +255,22 @@ export default function CosmicCoinShop({
 
           {/* Categories - Mobile Optimized with Scroll */}
           <div className="p-3 md:p-6 border-b-2 border-cyan-400/30">
-            <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              <style jsx>{`
-                .scrollbar-hide::-webkit-scrollbar {
-                  display: none;
-                }
-                .scrollbar-hide {
-                  -ms-overflow-style: none;
-                  scrollbar-width: none;
-                }
-              `}</style>
-              {categories.map((category) => (
+            <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {categories.map((cat) => (
                 <Button
-                  key={category.id}
+                  key={cat.id}
                   onClick={() => {
-                    setSelectedCategory(category.id);
+                    setSelectedCategory(cat.id);
                     playSound('click');
                   }}
                   className={`flex items-center gap-2 px-3 py-2 md:px-4 md:py-3 rounded-xl text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
-                    selectedCategory === category.id
+                    selectedCategory === cat.id
                       ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white'
                       : 'bg-white/10 text-white hover:bg-white/20'
                   }`}
                 >
-                  <span className="text-lg md:text-xl">{category.icon}</span>
-                  <span className="hidden sm:inline">{category.name}</span>
+                  <span className="text-lg md:text-xl">{cat.icon}</span>
+                  <span className="hidden sm:inline">{cat.name}</span>
                 </Button>
               ))}
             </div>

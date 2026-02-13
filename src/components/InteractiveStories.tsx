@@ -11,8 +11,10 @@ import { Progress } from "./ui/progress";
 import { Badge } from "./ui/badge";
 import SpaceDictionary from "./SpaceDictionary";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { useGameProgress } from "../contexts/GameProgressContext";
 import {
   BookOpen,
+  Coins,
   Sun,
   Zap,
   Globe,
@@ -112,6 +114,7 @@ export default function InteractiveStories({
   onBack,
   userProfile,
 }: InteractiveStoriesProps) {
+  const { progress, completeStory } = useGameProgress();
   const [selectedStory, setSelectedStory] = useState<
     string | null
   >(null);
@@ -130,6 +133,7 @@ export default function InteractiveStories({
     [],
   );
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showRewardNotification, setShowRewardNotification] = useState(false);
 
   // Image-based Illustration Component - MOBILE FRIENDLY & EASY TO EDIT
   const SpaceIllustration = ({ type }: { type: string }) => {
@@ -1131,6 +1135,13 @@ export default function InteractiveStories({
         completedStories: prev.completedStories + 1,
       }));
 
+      // Award coins and XP for completing the story
+      if (selectedStory) {
+        completeStory(selectedStory);
+        setShowRewardNotification(true);
+        setTimeout(() => setShowRewardNotification(false), 3000);
+      }
+
       setTimeout(() => {
         setShowCelebration(false);
         setSelectedStory(null);
@@ -1159,6 +1170,29 @@ export default function InteractiveStories({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 p-2 sm:p-4 md:p-6 lg:p-8">
+      {/* Reward Notification */}
+      <AnimatePresence>
+        {showRewardNotification && (
+          <motion.div
+            initial={{ opacity: 0, y: -100, scale: 0.5 }}
+            animate={{ opacity: 1, y: 20, scale: 1 }}
+            exit={{ opacity: 0, y: -100, scale: 0.5 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-3 md:px-8 md:py-4 rounded-2xl shadow-2xl border-4 border-white"
+          >
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="text-3xl md:text-4xl">🎉</div>
+              <div>
+                <div className="font-bold text-lg md:text-xl">Story Completed!</div>
+                <div className="flex gap-3 md:gap-4 text-base md:text-lg">
+                  <span>+50 🪙</span>
+                  <span>+100 ✨ XP</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="max-w-6xl mx-auto">
         {/* Header - Mobile Friendly */}
         <motion.div

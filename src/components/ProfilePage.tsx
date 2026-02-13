@@ -71,113 +71,149 @@ export default function ProfilePage({
     winRate: progress.gamesPlayed > 0 ? Math.round((progress.gamesWon / progress.gamesPlayed) * 100) : 0,
   };
 
+  // Dynamic achievements based on actual progress
   const achievements = [
     {
-      id: 1,
+      id: "first_quiz",
       title: "First Steps",
-      description: "Complete your first lesson",
+      description: "Complete your first quiz",
       icon: "🎯",
-      unlocked: true,
+      unlocked: progress.quizzesCompleted.length >= 1,
       rarity: "Common",
-      unlockedDate: "2024-01-15",
+      unlockedDate: progress.quizzesCompleted.length >= 1 ? progress.joinDate : null,
     },
     {
-      id: 2,
+      id: "quiz_master",
       title: "Quiz Master",
-      description: "Get 100% on any quiz",
+      description: "Complete 5 quizzes",
       icon: "🧠",
-      unlocked: true,
+      unlocked: progress.quizzesCompleted.length >= 5,
       rarity: "Rare",
-      unlockedDate: "2024-01-18",
+      unlockedDate: progress.quizzesCompleted.length >= 5 ? progress.joinDate : null,
     },
     {
-      id: 3,
-      title: "Aurora Artist",
-      description: "Create 5 aurora designs",
-      icon: "🎨",
-      unlocked: true,
-      rarity: "Uncommon",
-      unlockedDate: "2024-01-20",
+      id: "perfect_score",
+      title: "Perfect Scholar",
+      description: "Get 100% on any quiz",
+      icon: "⭐",
+      unlocked: Object.values(progress.quizScores).some(score => score === 100),
+      rarity: "Epic",
+      unlockedDate: Object.values(progress.quizScores).some(score => score === 100) ? progress.joinDate : null,
     },
     {
-      id: 4,
+      id: "game_starter",
+      title: "Game Enthusiast",
+      description: "Play 5 games",
+      icon: "🎮",
+      unlocked: progress.gamesPlayed >= 5,
+      rarity: "Common",
+      unlockedDate: progress.gamesPlayed >= 5 ? progress.joinDate : null,
+    },
+    {
+      id: "game_champion",
       title: "Game Champion",
-      description: "Win 10 games in a row",
+      description: "Win 10 games",
       icon: "🏆",
-      unlocked: true,
+      unlocked: progress.gamesWon >= 10,
       rarity: "Epic",
-      unlockedDate: "2024-01-22",
+      unlockedDate: progress.gamesWon >= 10 ? progress.joinDate : null,
     },
     {
-      id: 5,
-      title: "Space Defender",
-      description: "Complete satellite defense mission",
-      icon: "🛡️",
-      unlocked: true,
+      id: "story_reader",
+      title: "Story Explorer",
+      description: "Complete 3 interactive stories",
+      icon: "📚",
+      unlocked: progress.storiesCompleted.length >= 3,
       rarity: "Rare",
-      unlockedDate: "2024-01-23",
+      unlockedDate: progress.storiesCompleted.length >= 3 ? progress.joinDate : null,
     },
     {
-      id: 6,
-      title: "Perfect Storm",
-      description: "Predict 5 space weather events correctly",
-      icon: "⚡",
-      unlocked: false,
-      rarity: "Legendary",
-      unlockedDate: null,
+      id: "coin_collector",
+      title: "Coin Collector",
+      description: "Collect 500 cosmic coins",
+      icon: "🪙",
+      unlocked: progress.totalPoints >= 500,
+      rarity: "Rare",
+      unlockedDate: progress.totalPoints >= 500 ? progress.joinDate : null,
     },
     {
-      id: 7,
-      title: "Explorer",
-      description: "Visit all planets in the weather map",
+      id: "level_5",
+      title: "Cosmic Explorer",
+      description: "Reach level 5",
       icon: "🚀",
-      unlocked: false,
+      unlocked: progress.level >= 5,
       rarity: "Epic",
-      unlockedDate: null,
+      unlockedDate: progress.level >= 5 ? progress.joinDate : null,
     },
     {
-      id: 8,
-      title: "Master Scholar",
-      description: "Complete all quizzes with 90%+ score",
-      icon: "👨‍🎓",
-      unlocked: false,
+      id: "level_10",
+      title: "Space Weather Master",
+      description: "Reach level 10",
+      icon: "👑",
+      unlocked: progress.level >= 10,
       rarity: "Legendary",
-      unlockedDate: null,
+      unlockedDate: progress.level >= 10 ? progress.joinDate : null,
+    },
+    {
+      id: "all_rounder",
+      title: "All-Rounder",
+      description: "Complete at least 1 quiz, game, and story",
+      icon: "🌟",
+      unlocked: progress.quizzesCompleted.length >= 1 && progress.gamesPlayed >= 1 && progress.storiesCompleted.length >= 1,
+      rarity: "Epic",
+      unlockedDate: progress.quizzesCompleted.length >= 1 && progress.gamesPlayed >= 1 && progress.storiesCompleted.length >= 1 ? progress.joinDate : null,
     },
   ];
 
-  const recentActivity = [
-    {
-      activity: "Completed Solar Storm Defense",
-      points: 100,
-      time: "2 hours ago",
-      icon: "🛡️",
-    },
-    {
-      activity: "Perfect score on Aurora Quiz",
-      points: 75,
-      time: "1 day ago",
-      icon: "🧠",
-    },
-    {
-      activity: "Created new aurora design",
-      points: 25,
-      time: "2 days ago",
-      icon: "🎨",
-    },
-    {
-      activity: "Won Solar Flare Catcher",
-      points: 50,
-      time: "3 days ago",
-      icon: "🌟",
-    },
-    {
-      activity: "Read Solar Wind Story",
-      points: 30,
-      time: "4 days ago",
-      icon: "📚",
-    },
-  ];
+  // Generate recent activity based on actual progress
+  const generateRecentActivity = () => {
+    const activities = [];
+    
+    // Add quiz completions
+    progress.quizzesCompleted.slice(-3).forEach((quizId, index) => {
+      const score = progress.quizScores[quizId] || 0;
+      activities.push({
+        activity: score === 100 ? `Perfect score on ${quizId}` : `Completed ${quizId}`,
+        points: score,
+        time: index === 0 ? "Recently" : index === 1 ? "Earlier" : "Some time ago",
+        icon: "🧠",
+      });
+    });
+    
+    // Add game plays
+    if (progress.gamesPlayed > 0) {
+      activities.push({
+        activity: `Played ${progress.gamesPlayed} games (Won ${progress.gamesWon})`,
+        points: progress.gamesWon * 30,
+        time: "Recently",
+        icon: "🎮",
+      });
+    }
+    
+    // Add story completions
+    progress.storiesCompleted.slice(-2).forEach((storyId, index) => {
+      activities.push({
+        activity: `Completed story: ${storyId}`,
+        points: 50,
+        time: index === 0 ? "Recently" : "Earlier",
+        icon: "📚",
+      });
+    });
+    
+    // If no activities, show welcome message
+    if (activities.length === 0) {
+      activities.push({
+        activity: "Start your space weather journey!",
+        points: 0,
+        time: "Now",
+        icon: "🚀",
+      });
+    }
+    
+    return activities.slice(0, 5); // Show only last 5 activities
+  };
+
+  const recentActivity = generateRecentActivity();
 
   const levelProgress = getLevelProgress(progress.xp, progress.level);
   const nextLevelPoints = getXPForNextLevel(progress.xp, progress.level);
@@ -350,16 +386,7 @@ export default function ProfilePage({
         </Card>
 
         {/* Navigation Tabs - Mobile Optimized with Scroll */}
-        <div className="flex space-x-2 mb-4 md:mb-8 overflow-x-auto pb-2 scrollbar-hide">
-          <style jsx>{`
-            .scrollbar-hide::-webkit-scrollbar {
-              display: none;
-            }
-            .scrollbar-hide {
-              -ms-overflow-style: none;
-              scrollbar-width: none;
-            }
-          `}</style>
+        <div className="flex space-x-2 mb-4 md:mb-8 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {tabs.map((tab) => (
             <Button
               key={tab.id}
@@ -638,7 +665,7 @@ export default function ProfilePage({
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-700 font-bold text-lg">
-                        Favorite Game
+                        None
                       </span>
                       <span className="text-lg font-bold text-green-600">
                         Solar Flare Catcher
@@ -685,7 +712,7 @@ export default function ProfilePage({
                         Study Streak
                       </span>
                       <span className="text-2xl font-bold text-blue-600">
-                        7 days
+                        1 day
                       </span>
                     </div>
                   </CardContent>
@@ -705,7 +732,7 @@ export default function ProfilePage({
                         Total Time
                       </span>
                       <span className="text-2xl font-bold text-purple-600">
-                        24h 30m
+                        1h
                       </span>
                     </div>
                     <div className="flex justify-between items-center">

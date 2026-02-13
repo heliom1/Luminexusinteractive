@@ -625,16 +625,7 @@ export default function MainPage({
           </div>
 
           {/* Bottom Row - Action Buttons - Horizontal Scroll on Mobile */}
-          <div className="flex gap-2 md:gap-4 overflow-x-auto pb-2 scrollbar-hide">
-            <style jsx>{`
-              .scrollbar-hide::-webkit-scrollbar {
-                display: none;
-              }
-              .scrollbar-hide {
-                -ms-overflow-style: none;
-                scrollbar-width: none;
-              }
-            `}</style>
+          <div className="flex gap-2 md:gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             
             <motion.div
               whileHover={{ scale: 1.05 }}
